@@ -11,13 +11,12 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Exception;
+namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Filter;
 
-/**
- * Base exception interface.
- *
- * @author Kévin Dunglas <dunglas@gmail.com>
- */
-interface ExceptionInterface extends \Throwable
+final class DoesNotImplementInterfaceFilter
 {
+    public function getDescription(string $resourceClass): array
+    {
+        return [];
+    }
 }

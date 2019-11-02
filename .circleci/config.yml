@@ -30,7 +30,7 @@ commands:
   disable-xdebug-php-extension:
     steps:
       - run:
-          name: Disable Xdebug PHP extension
+          name: Disable xdebug PHP extension
           command: sudo rm /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
   install-mongodb-php-extension:
     steps:
@@ -46,6 +46,13 @@ commands:
           command: |
             sudo pecl install pcov-1.0.6
             sudo docker-php-ext-enable pcov
+  install-symfony-flex:
+    steps:
+      - run:
+          name: Install Symfony Flex
+          command: |
+            composer global require --prefer-dist --no-progress --no-suggest --ansi \
+              symfony/flex
   merge-code-coverage-reports:
     parameters:
       dir:
@@ -88,6 +95,7 @@ commands:
   restore-composer-cache:
     steps:
       - restore_cache:
+          name: Restore Composer cache
           keys:
             - composer-cache-{{ .Revision }}
             - composer-cache-{{ .Branch }}
@@ -95,6 +103,7 @@ commands:
   restore-npm-cache:
     steps:
       - restore_cache:
+          name: Restore npm cache
           keys:
             - npm-cache-{{ .Revision }}
             - npm-cache-{{ .Branch }}
@@ -102,6 +111,7 @@ commands:
   restore-php-cs-fixer-cache:
     steps:
       - restore_cache:
+          name: Restore PHP-CS-Fixer cache
           keys:
             - php-cs-fixer-cache-{{ .Revision }}
             - php-cs-fixer-cache-{{ .Branch }}
@@ -109,6 +119,7 @@ commands:
   restore-phpstan-cache:
     steps:
       - restore_cache:
+          name: Restore PHPStan cache
           keys:
             - phpstan-cache-{{ .Revision }}
             - phpstan-cache-{{ .Branch }}
@@ -116,40 +127,48 @@ commands:
   save-composer-cache:
     steps:
       - save_cache:
+          name: Save Composer cache
           paths:
-            - ~/.composer/cache
+            - ~/.composer/cache/files
           key: composer-cache-{{ .Branch }}-{{ .BuildNum }}
       - save_cache:
+          name: Save Composer cache
           paths:
-            - ~/.composer/cache
+            - ~/.composer/cache/files
           key: composer-cache-{{ .Revision }}-{{ .BuildNum }}
   save-npm-cache:
     steps:
       - save_cache:
+          name: Save npm cache
           paths:
             - ~/.npm
           key: npm-cache-{{ .Branch }}-{{ .BuildNum }}
       - save_cache:
+          name: Save npm cache
           paths:
             - ~/.npm
           key: npm-cache-{{ .Revision }}-{{ .BuildNum }}
   save-php-cs-fixer-cache:
     steps:
       - save_cache:
+          name: Save PHP-CS-Fixer cache
           paths:
             - .php_cs.cache
           key: php-cs-fixer-cache-{{ .Branch }}-{{ .BuildNum }}
       - save_cache:
+          name: Save PHP-CS-Fixer cache
           paths:
             - .php_cs.cache
           key: php-cs-fixer-cache-{{ .Revision }}-{{ .BuildNum }}
   save-phpstan-cache:
     steps:
       - save_cache:
+          name: Save PHPStan cache
           paths:
             - /tmp/phpstan/cache
           key: phpstan-cache-{{ .Branch }}-{{ .BuildNum }}
       - save_cache:
+          name: Save PHPStan cache
           paths:
             - /tmp/phpstan/cache
           key: phpstan-cache-{{ .Revision }}-{{ .BuildNum }}
@@ -201,27 +220,34 @@ executors:
   php:
     docker:
       - image: circleci/php:7.3-node
+        environment:
+          SYMFONY_REQUIRE: ^3.4 || ^4.0
   php-and-elasticsearch:
     docker:
       - image: circleci/php:7.3-node
-      # https://github.com/elastic/elasticsearch-docker/issues/84
-      - image: docker.elastic.co/elasticsearch/elasticsearch:6.7.2
+        environment:
+          SYMFONY_REQUIRE: ^3.4 || ^4.0
+      - image: docker.elastic.co/elasticsearch/elasticsearch:6.8.3 # https://github.com/elastic/elasticsearch/issues/43627
   php-and-mongodb:
     docker:
       - image: circleci/php:7.3-node
+        environment:
+          SYMFONY_REQUIRE: ^3.4 || ^4.0
       - image: circleci/mongo:4
 
 jobs:
   php-cs-fixer:
+    description: PHP-CS-Fixer
     executor: php
     environment:
-      PHP_CS_FIXER_FUTURE_MODE: 1
+      PHP_CS_FIXER_FUTURE_MODE: '1'
     working_directory: ~/api-platform/core
     steps:
       - checkout
       - disable-xdebug-php-extension
       - disable-php-memory-limit
       - restore-composer-cache
+      - install-symfony-flex
       - run:
           name: Install PHP-CS-Fixer
           command: |
@@ -237,10 +263,10 @@ jobs:
       - save-php-cs-fixer-cache
 
   phpstan:
+    description: PHPStan
     executor: php
     environment:
-      # https://github.com/phpstan/phpstan-symfony/issues/37
-      APP_DEBUG: 1
+      APP_DEBUG: '1' # https://github.com/phpstan/phpstan-symfony/issues/37
     working_directory: ~/api-platform/core
     steps:
       - checkout
@@ -248,6 +274,7 @@ jobs:
       - disable-xdebug-php-extension
       - disable-php-memory-limit
       - restore-composer-cache
+      - install-symfony-flex
       - update-project-dependencies
       - save-composer-cache
       - clear-test-app-cache
@@ -258,6 +285,7 @@ jobs:
       - save-phpstan-cache
 
   phpunit-coverage:
+    description: PHPUnit (code coverage)
     executor: php
     parallelism: 2
     working_directory: ~/api-platform/core
@@ -268,6 +296,7 @@ jobs:
       - disable-xdebug-php-extension
       - disable-php-memory-limit
       - restore-composer-cache
+      - install-symfony-flex
       - update-project-dependencies
       - save-composer-cache
       - clear-test-app-cache
@@ -305,6 +334,7 @@ jobs:
       - save-npm-cache
 
   behat-coverage:
+    description: Behat (code coverage)
     executor: php
     parallelism: 2
     working_directory: ~/api-platform/core
@@ -315,6 +345,7 @@ jobs:
       - disable-xdebug-php-extension
       - disable-php-memory-limit
       - restore-composer-cache
+      - install-symfony-flex
       - update-project-dependencies
       - save-composer-cache
       - clear-test-app-cache
@@ -349,6 +380,7 @@ jobs:
       - save-npm-cache
 
   phpunit-mongodb-coverage:
+    description: PHPUnit (MongoDB) (code coverage)
     executor: php-and-mongodb
     environment:
       APP_ENV: mongodb
@@ -360,6 +392,7 @@ jobs:
       - disable-xdebug-php-extension
       - disable-php-memory-limit
       - restore-composer-cache
+      - install-symfony-flex
       - update-project-dependencies
       - save-composer-cache
       - clear-test-app-cache
@@ -386,6 +419,7 @@ jobs:
       - save-npm-cache
 
   behat-mongodb-coverage:
+    description: Behat (MongoDB) (code coverage)
     executor: php-and-mongodb
     environment:
       APP_ENV: mongodb
@@ -397,6 +431,7 @@ jobs:
       - disable-xdebug-php-extension
       - disable-php-memory-limit
       - restore-composer-cache
+      - install-symfony-flex
       - update-project-dependencies
       - save-composer-cache
       - clear-test-app-cache
@@ -429,6 +464,7 @@ jobs:
       - save-npm-cache
 
   behat-elasticsearch-coverage:
+    description: Behat (Elasticsearch) (code coverage)
     executor: php-and-elasticsearch
     environment:
       APP_ENV: elasticsearch
@@ -440,6 +476,7 @@ jobs:
       - disable-xdebug-php-extension
       - disable-php-memory-limit
       - restore-composer-cache
+      - install-symfony-flex
       - update-project-dependencies
       - save-composer-cache
       - clear-test-app-cache
