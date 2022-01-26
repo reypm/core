@@ -11,22 +11,26 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\JsonLd\Action;
+namespace ApiPlatform\Tests\JsonLd\Action;
 
-use ApiPlatform\Core\JsonLd\Action\ContextAction;
-use ApiPlatform\Core\JsonLd\ContextBuilderInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Metadata\Resource\ResourceNameCollection;
+use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\JsonLd\Action\ContextAction;
+use ApiPlatform\JsonLd\ContextBuilderInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * @author Amrouche Hamza <hamza.simperfit@gmail.com>
+ * @group legacy
  */
 class ContextActionTest extends TestCase
 {
+    use ProphecyTrait;
+
     public function testContextActionWithEntrypoint()
     {
         $contextBuilderProphecy = $this->prophesize(ContextBuilderInterface::class);

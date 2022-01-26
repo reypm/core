@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Serializer;
+namespace ApiPlatform\Serializer;
 
 use Symfony\Component\Serializer\Encoder\DecoderInterface;
 use Symfony\Component\Serializer\Encoder\EncoderInterface;
@@ -40,7 +40,7 @@ final class JsonEncoder implements EncoderInterface, DecoderInterface
         }
 
         // Encode <, >, ', &, and " characters in the JSON, making it also safe to be embedded into HTML.
-        $jsonEncodeOptions = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE;
+        $jsonEncodeOptions = \JSON_HEX_TAG | \JSON_HEX_APOS | \JSON_HEX_AMP | \JSON_HEX_QUOT | \JSON_UNESCAPED_UNICODE;
         if (interface_exists(AdvancedNameConverterInterface::class)) {
             $jsonEncode = new JsonEncode(['json_encode_options' => $jsonEncodeOptions]);
             $jsonDecode = new JsonDecode(['json_decode_associative' => true]);
@@ -55,7 +55,7 @@ final class JsonEncoder implements EncoderInterface, DecoderInterface
     /**
      * {@inheritdoc}
      */
-    public function supportsEncoding($format)
+    public function supportsEncoding($format): bool
     {
         return $this->format === $format;
     }
@@ -63,7 +63,7 @@ final class JsonEncoder implements EncoderInterface, DecoderInterface
     /**
      * {@inheritdoc}
      */
-    public function encode($data, $format, array $context = [])
+    public function encode($data, $format, array $context = []): string
     {
         return $this->jsonEncoder->encode($data, $format, $context);
     }
@@ -71,13 +71,15 @@ final class JsonEncoder implements EncoderInterface, DecoderInterface
     /**
      * {@inheritdoc}
      */
-    public function supportsDecoding($format)
+    public function supportsDecoding($format): bool
     {
         return $this->format === $format;
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @return mixed
      */
     public function decode($data, $format, array $context = [])
     {

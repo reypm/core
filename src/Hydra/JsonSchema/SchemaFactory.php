@@ -11,14 +11,15 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Hydra\JsonSchema;
+namespace ApiPlatform\Hydra\JsonSchema;
 
-use ApiPlatform\Core\JsonSchema\Schema;
-use ApiPlatform\Core\JsonSchema\SchemaFactory as BaseSchemaFactory;
-use ApiPlatform\Core\JsonSchema\SchemaFactoryInterface;
+use ApiPlatform\JsonLd\ContextBuilder;
+use ApiPlatform\JsonSchema\Schema;
+use ApiPlatform\JsonSchema\SchemaFactory as BaseSchemaFactory;
+use ApiPlatform\JsonSchema\SchemaFactoryInterface;
 
 /**
- * Generates the JSON Schema corresponding to a Hydra document.
+ * Decorator factory which adds Hydra properties to the JSON Schema document.
  *
  * @experimental
  *
@@ -31,40 +32,76 @@ final class SchemaFactory implements SchemaFactoryInterface
         'type' => 'string',
     ];
     private const BASE_PROPS = [
-        '@context' => self::BASE_PROP,
         '@id' => self::BASE_PROP,
         '@type' => self::BASE_PROP,
     ];
+    private const BASE_ROOT_PROPS = [
+        '@context' => [
+            'readOnly' => true,
+            'oneOf' => [
+                ['type' => 'string'],
+                [
+                    'type' => 'object',
+                    'properties' => [
+                        '@vocab' => [
+                            'type' => 'string',
+                        ],
+                        'hydra' => [
+                            'type' => 'string',
+                            'enum' => [ContextBuilder::HYDRA_NS],
+                        ],
+                    ],
+                    'required' => ['@vocab', 'hydra'],
+                    'additionalProperties' => true,
+                ],
+            ],
+        ],
+    ] + self::BASE_PROPS;
 
     private $schemaFactory;
 
-    public function __construct(BaseSchemaFactory $schemaFactory)
+    public function __construct(SchemaFactoryInterface $schemaFactory)
     {
         $this->schemaFactory = $schemaFactory;
-        $schemaFactory->addDistinctFormat('jsonld');
+
+        $this->addDistinctFormat('jsonld');
     }
 
     /**
      * {@inheritdoc}
      */
-    public function buildSchema(string $resourceClass, string $format = 'jsonld', string $type = Schema::TYPE_OUTPUT, ?string $operationType = null, ?string $operationName = null, ?Schema $schema = null, ?array $serializerContext = null, bool $forceCollection = false): Schema
+    public function buildSchema(string $className, string $format = 'jsonld', string $type = Schema::TYPE_OUTPUT, ?string $operationType = null, ?string $operationName = null, ?Schema $schema = null, ?array $serializerContext = null, bool $forceCollection = false): Schema
     {
-        $schema = $this->schemaFactory->buildSchema($resourceClass, $format, $type, $operationType, $operationName, $schema, $serializerContext, $forceCollection);
+        $schema = $this->schemaFactory->buildSchema($className, $format, $type, $operationType, $operationName, $schema, $serializerContext, $forceCollection);
         if ('jsonld' !== $format) {
             return $schema;
         }
 
         $definitions = $schema->getDefinitions();
         if ($key = $schema->getRootDefinitionKey()) {
-            $definitions[$key]['properties'] = self::BASE_PROPS + ($definitions[$key]['properties'] ?? []);
+            $definitions[$key]['properties'] = self::BASE_ROOT_PROPS + ($definitions[$key]['properties'] ?? []);
 
             return $schema;
+        }
+        if ($key = $schema->getItemsDefinitionKey()) {
+            $definitions[$key]['properties'] = self::BASE_PROPS + ($definitions[$key]['properties'] ?? []);
         }
 
         if (($schema['type'] ?? '') === 'array') {
             // hydra:collection
             $items = $schema['items'];
             unset($schema['items']);
+
+            $nullableStringDefinition = ['type' => 'string'];
+
+            switch ($schema->getVersion()) {
+                case Schema::VERSION_JSON_SCHEMA:
+                    $nullableStringDefinition = ['type' => ['string', 'null']];
+                    break;
+                case Schema::VERSION_OPENAPI:
+                    $nullableStringDefinition = ['type' => 'string', 'nullable' => true];
+                    break;
+            }
 
             $schema['type'] = 'object';
             $schema['properties'] = [
@@ -94,6 +131,10 @@ final class SchemaFactory implements SchemaFactoryInterface
                             'type' => 'string',
                             'format' => 'iri-reference',
                         ],
+                        'hydra:previous' => [
+                            'type' => 'string',
+                            'format' => 'iri-reference',
+                        ],
                         'hydra:next' => [
                             'type' => 'string',
                             'format' => 'iri-reference',
@@ -113,7 +154,7 @@ final class SchemaFactory implements SchemaFactoryInterface
                                 'properties' => [
                                     '@type' => ['type' => 'string'],
                                     'variable' => ['type' => 'string'],
-                                    'property' => ['type' => 'string'],
+                                    'property' => $nullableStringDefinition,
                                     'required' => ['type' => 'boolean'],
                                 ],
                             ],
@@ -129,5 +170,12 @@ final class SchemaFactory implements SchemaFactoryInterface
         }
 
         return $schema;
+    }
+
+    public function addDistinctFormat(string $format): void
+    {
+        if ($this->schemaFactory instanceof BaseSchemaFactory) {
+            $this->schemaFactory->addDistinctFormat($format);
+        }
     }
 }

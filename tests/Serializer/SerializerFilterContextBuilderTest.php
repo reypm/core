@@ -11,25 +11,29 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Serializer;
+namespace ApiPlatform\Tests\Serializer;
 
 use ApiPlatform\Core\Api\FilterInterface;
-use ApiPlatform\Core\Exception\RuntimeException;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
-use ApiPlatform\Core\Serializer\Filter\FilterInterface as SerializerFilterInterface;
-use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
-use ApiPlatform\Core\Serializer\SerializerFilterContextBuilder;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\DummyGroup;
+use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\Exception\RuntimeException;
+use ApiPlatform\Serializer\Filter\FilterInterface as SerializerFilterInterface;
+use ApiPlatform\Serializer\SerializerContextBuilderInterface;
+use ApiPlatform\Serializer\SerializerFilterContextBuilder;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\DummyGroup;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @author Baptiste Meyer <baptiste.meyer@gmail.com>
+ * @group legacy
  */
 class SerializerFilterContextBuilderTest extends TestCase
 {
+    use ProphecyTrait;
+
     public function testCreateFromRequestWithCollectionOperation()
     {
         $request = new Request();
@@ -147,6 +151,10 @@ class SerializerFilterContextBuilderTest extends TestCase
         $attributes = [
             'resource_class' => DummyGroup::class,
             'collection_operation_name' => 'get',
+            'identifiers' => [
+                'id' => [DummyGroup::class, 'id'],
+            ],
+            'has_composite_identifier' => false,
             'receive' => true,
             'respond' => true,
             'persist' => true,

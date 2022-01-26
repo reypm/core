@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Document;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Document;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use DateTime;
@@ -19,10 +19,13 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * @ApiResource(attributes={
- *     "normalization_context"={"groups"={"inspection_read"}},
- *     "denormalization_context"={"groups"={"inspection_write"}}
- * })
+ * @ApiResource(
+ *     attributes={
+ *         "normalization_context"={"groups"={"inspection_read"}},
+ *         "denormalization_context"={"groups"={"inspection_write"}}
+ *     },
+ *     graphql={}
+ * )
  * @ODM\Document
  */
 class VoDummyInspection
@@ -32,7 +35,7 @@ class VoDummyInspection
     /**
      * @var bool
      *
-     * @ODM\Field(type="boolean")
+     * @ODM\Field(type="bool")
      * @Groups({"car_read", "car_write", "inspection_read", "inspection_write"})
      */
     private $accepted;

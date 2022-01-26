@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Problem\Serializer;
+namespace ApiPlatform\Problem\Serializer;
 
-use ApiPlatform\Core\Serializer\AbstractConstraintViolationListNormalizer;
+use ApiPlatform\Serializer\AbstractConstraintViolationListNormalizer;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 
 /**
@@ -44,7 +44,7 @@ final class ConstraintViolationListNormalizer extends AbstractConstraintViolatio
     /**
      * {@inheritdoc}
      */
-    public function normalize($object, $format = null, array $context = [])
+    public function normalize($object, $format = null, array $context = []): array
     {
         [$messages, $violations] = $this->getMessagesAndViolations($object);
 

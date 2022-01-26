@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Serializer\Filter;
+namespace ApiPlatform\Tests\Serializer\Filter;
 
-use ApiPlatform\Core\Serializer\Filter\PropertyFilter;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\DummyProperty;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Serializer\NameConverter\CustomConverter;
+use ApiPlatform\Serializer\Filter\PropertyFilter;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\DummyProperty;
+use ApiPlatform\Tests\Fixtures\TestBundle\Serializer\NameConverter\CustomConverter;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 

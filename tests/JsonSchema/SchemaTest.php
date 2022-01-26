@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\JsonSchema;
+namespace ApiPlatform\Tests\JsonSchema;
 
-use ApiPlatform\Core\JsonSchema\Schema;
+use ApiPlatform\JsonSchema\Schema;
 use PHPUnit\Framework\TestCase;
 
 class SchemaTest extends TestCase
@@ -29,6 +29,19 @@ class SchemaTest extends TestCase
         $this->assertInstanceOf(\ArrayObject::class, $schema);
         $this->assertSame($version, $schema->getVersion());
         $this->assertSame('Foo', $schema->getRootDefinitionKey());
+    }
+
+    /**
+     * @dataProvider versionProvider
+     */
+    public function testCollectionJsonSchemaVersion(string $version, string $ref): void
+    {
+        $schema = new Schema($version);
+        $schema['items']['$ref'] = $ref;
+
+        $this->assertInstanceOf(\ArrayObject::class, $schema);
+        $this->assertSame($version, $schema->getVersion());
+        $this->assertSame('Foo', $schema->getItemsDefinitionKey());
     }
 
     public function versionProvider(): iterable
@@ -60,11 +73,11 @@ class SchemaTest extends TestCase
         if (Schema::VERSION_OPENAPI === $version) {
             $this->assertArrayHasKey('schemas', $schema['components']);
         } else {
-            $this->assertArrayHasKey('definitions', $schema);
+            $this->assertTrue(isset($schema['definitions']));
         }
 
         $definitions = $schema->getDefinitions();
-        $this->assertArrayHasKey('foo', $definitions);
+        $this->assertTrue(isset($definitions['foo']));
 
         $this->assertArrayNotHasKey('definitions', $schema->getArrayCopy(false));
         $this->assertArrayNotHasKey('components', $schema->getArrayCopy(false));

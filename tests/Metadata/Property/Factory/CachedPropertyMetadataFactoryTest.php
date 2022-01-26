@@ -13,10 +13,11 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Tests\Metadata\Property\Factory;
 
-use ApiPlatform\Core\Metadata\Property\Factory\CachedPropertyMetadataFactory;
-use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
-use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Dummy;
+use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\Property\Factory\CachedPropertyMetadataFactory;
+use ApiPlatform\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Dummy;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheException;
 use Psr\Cache\CacheItemInterface;
@@ -27,11 +28,14 @@ use Psr\Cache\CacheItemPoolInterface;
  */
 class CachedPropertyMetadataFactoryTest extends TestCase
 {
+    use ProphecyTrait;
+
     public function testCreateWithItemHit()
     {
+        $propertyMetadata = (new ApiProperty())->withDescription('a dummy')->withReadable(true)->withWritable(true);
         $cacheItem = $this->prophesize(CacheItemInterface::class);
         $cacheItem->isHit()->willReturn(true)->shouldBeCalled();
-        $cacheItem->get()->willReturn(new PropertyMetadata(null, 'A dummy', true, true, null, null, false, false))->shouldBeCalled();
+        $cacheItem->get()->willReturn($propertyMetadata)->shouldBeCalled();
 
         $cacheItemPool = $this->prophesize(CacheItemPoolInterface::class);
         $cacheItemPool->getItem($this->generateCacheKey())->willReturn($cacheItem->reveal())->shouldBeCalled();
@@ -41,14 +45,13 @@ class CachedPropertyMetadataFactoryTest extends TestCase
         $cachedPropertyMetadataFactory = new CachedPropertyMetadataFactory($cacheItemPool->reveal(), $decoratedPropertyMetadataFactory->reveal());
         $resultedPropertyMetadata = $cachedPropertyMetadataFactory->create(Dummy::class, 'dummy');
 
-        $expectedResult = new PropertyMetadata(null, 'A dummy', true, true, null, null, false, false);
-        $this->assertEquals($expectedResult, $resultedPropertyMetadata);
-        $this->assertEquals($expectedResult, $cachedPropertyMetadataFactory->create(Dummy::class, 'dummy'), 'Trigger the local cache');
+        $this->assertEquals($propertyMetadata, $resultedPropertyMetadata);
+        $this->assertEquals($propertyMetadata, $cachedPropertyMetadataFactory->create(Dummy::class, 'dummy'), 'Trigger the local cache');
     }
 
     public function testCreateWithItemNotHit()
     {
-        $propertyMetadata = new PropertyMetadata(null, 'A dummy', true, true, null, null, false, false);
+        $propertyMetadata = (new ApiProperty())->withDescription('a dummy')->withReadable(true)->withWritable(true);
 
         $decoratedPropertyMetadataFactory = $this->prophesize(PropertyMetadataFactoryInterface::class);
         $decoratedPropertyMetadataFactory->create(Dummy::class, 'dummy', [])->willReturn($propertyMetadata)->shouldBeCalled();
@@ -64,28 +67,27 @@ class CachedPropertyMetadataFactoryTest extends TestCase
         $cachedPropertyMetadataFactory = new CachedPropertyMetadataFactory($cacheItemPool->reveal(), $decoratedPropertyMetadataFactory->reveal());
         $resultedPropertyMetadata = $cachedPropertyMetadataFactory->create(Dummy::class, 'dummy');
 
-        $expectedResult = new PropertyMetadata(null, 'A dummy', true, true, null, null, false, false);
-        $this->assertEquals($expectedResult, $resultedPropertyMetadata);
-        $this->assertEquals($expectedResult, $cachedPropertyMetadataFactory->create(Dummy::class, 'dummy'), 'Trigger the local cache');
+        $this->assertEquals($propertyMetadata, $resultedPropertyMetadata);
+        $this->assertEquals($propertyMetadata, $cachedPropertyMetadataFactory->create(Dummy::class, 'dummy'), 'Trigger the local cache');
     }
 
     public function testCreateWithGetCacheItemThrowsCacheException()
     {
-        $decoratedPropertyMetadataFactory = $this->prophesize(PropertyMetadataFactoryInterface::class);
-        $decoratedPropertyMetadataFactory->create(Dummy::class, 'dummy', [])->willReturn(new PropertyMetadata(null, 'A dummy', true, true, null, null, false, false))->shouldBeCalled();
+        $propertyMetadata = (new ApiProperty())->withDescription('a dummy')->withReadable(true)->withWritable(true);
 
-        $cacheException = $this->prophesize(\Exception::class);
-        $cacheException->willImplement(CacheException::class);
+        $decoratedPropertyMetadataFactory = $this->prophesize(PropertyMetadataFactoryInterface::class);
+        $decoratedPropertyMetadataFactory->create(Dummy::class, 'dummy', [])->willReturn($propertyMetadata)->shouldBeCalled();
+
+        $cacheException = new class() extends \Exception implements CacheException {};
 
         $cacheItemPool = $this->prophesize(CacheItemPoolInterface::class);
-        $cacheItemPool->getItem($this->generateCacheKey())->willThrow($cacheException->reveal())->shouldBeCalled();
+        $cacheItemPool->getItem($this->generateCacheKey())->willThrow($cacheException)->shouldBeCalled();
 
         $cachedPropertyMetadataFactory = new CachedPropertyMetadataFactory($cacheItemPool->reveal(), $decoratedPropertyMetadataFactory->reveal());
         $resultedPropertyMetadata = $cachedPropertyMetadataFactory->create(Dummy::class, 'dummy');
 
-        $expectedResult = new PropertyMetadata(null, 'A dummy', true, true, null, null, false, false);
-        $this->assertEquals($expectedResult, $resultedPropertyMetadata);
-        $this->assertEquals($expectedResult, $cachedPropertyMetadataFactory->create(Dummy::class, 'dummy'), 'Trigger the local cache');
+        $this->assertEquals($propertyMetadata, $resultedPropertyMetadata);
+        $this->assertEquals($propertyMetadata, $cachedPropertyMetadataFactory->create(Dummy::class, 'dummy'), 'Trigger the local cache');
     }
 
     private function generateCacheKey(string $resourceClass = Dummy::class, string $property = 'dummy', array $options = [])

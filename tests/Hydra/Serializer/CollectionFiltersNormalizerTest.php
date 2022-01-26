@@ -11,20 +11,21 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Hydra\Serializer;
+namespace ApiPlatform\Tests\Hydra\Serializer;
 
 use ApiPlatform\Core\Api\FilterCollection;
 use ApiPlatform\Core\Api\OperationType;
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\FilterInterface;
-use ApiPlatform\Core\Exception\InvalidArgumentException;
-use ApiPlatform\Core\Hydra\Serializer\CollectionFiltersNormalizer;
-use ApiPlatform\Core\Hydra\Serializer\CollectionNormalizer;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
-use ApiPlatform\Core\Tests\Fixtures\Foo;
-use ApiPlatform\Core\Tests\Fixtures\NotAResource;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Dummy;
+use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\Doctrine\Orm\Filter\FilterInterface;
+use ApiPlatform\Exception\InvalidArgumentException;
+use ApiPlatform\Hydra\Serializer\CollectionFiltersNormalizer;
+use ApiPlatform\Hydra\Serializer\CollectionNormalizer;
+use ApiPlatform\Tests\Fixtures\Foo;
+use ApiPlatform\Tests\Fixtures\NotAResource;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Dummy;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Psr\Container\ContainerInterface;
@@ -33,9 +34,12 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
  * @author Kévin Dunglas <dunglas@gmail.com>
+ * @group legacy
  */
 class CollectionFiltersNormalizerTest extends TestCase
 {
+    use ProphecyTrait;
+
     public function testSupportsNormalization()
     {
         $decoratedProphecy = $this->prophesize(NormalizerInterface::class);

@@ -11,12 +11,13 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Action;
+namespace ApiPlatform\Tests\Action;
 
-use ApiPlatform\Core\Action\EntrypointAction;
+use ApiPlatform\Action\EntrypointAction;
 use ApiPlatform\Core\Api\Entrypoint;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceNameCollection;
+use ApiPlatform\Core\Tests\ProphecyTrait;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -24,7 +25,9 @@ use PHPUnit\Framework\TestCase;
  */
 class EntrypointActionTest extends TestCase
 {
-    public function testGetEntrypoint()
+    use ProphecyTrait;
+
+    public function testGetEntrypoint(): void
     {
         $resourceNameCollectionFactoryProphecy = $this->prophesize(ResourceNameCollectionFactoryInterface::class);
         $resourceNameCollectionFactoryProphecy->create()->willReturn(new ResourceNameCollection(['dummies']));

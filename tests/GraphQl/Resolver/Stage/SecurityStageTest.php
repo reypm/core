@@ -13,14 +13,17 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Tests\GraphQl\Resolver\Stage;
 
-use ApiPlatform\Core\GraphQl\Resolver\Stage\SecurityStage;
-use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
-use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
-use ApiPlatform\Core\Security\ResourceAccessCheckerInterface;
-use GraphQL\Error\Error;
+use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\GraphQl\Resolver\Stage\SecurityStage;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GraphQl\Query;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
+use ApiPlatform\Symfony\Security\ResourceAccessCheckerInterface;
 use GraphQL\Type\Definition\ResolveInfo;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
  * @author Alan Poulain <contact@alanpoulain.eu>
@@ -28,9 +31,11 @@ use Prophecy\Argument;
  */
 class SecurityStageTest extends TestCase
 {
+    use ProphecyTrait;
+
     /** @var SecurityStage */
     private $securityStage;
-    private $resourceMetadataFactoryProphecy;
+    private $resourceMetadataCollectionFactoryProphecy;
     private $resourceAccessCheckerProphecy;
 
     /**
@@ -38,23 +43,25 @@ class SecurityStageTest extends TestCase
      */
     protected function setUp(): void
     {
-        $this->resourceMetadataFactoryProphecy = $this->prophesize(ResourceMetadataFactoryInterface::class);
+        $this->resourceMetadataCollectionFactoryProphecy = $this->prophesize(ResourceMetadataCollectionFactoryInterface::class);
         $this->resourceAccessCheckerProphecy = $this->prophesize(ResourceAccessCheckerInterface::class);
 
         $this->securityStage = new SecurityStage(
-            $this->resourceMetadataFactoryProphecy->reveal(),
+            $this->resourceMetadataCollectionFactoryProphecy->reveal(),
             $this->resourceAccessCheckerProphecy->reveal()
         );
     }
 
     public function testNoSecurity(): void
     {
+        $operationName = 'item_query';
         $resourceClass = 'myResource';
-        $this->resourceMetadataFactoryProphecy->create($resourceClass)->willReturn(new ResourceMetadata());
+        $resourceMetadata = new ResourceMetadataCollection($resourceClass, [(new ApiResource())->withGraphQlOperations([$operationName => new Query()])]);
+        $this->resourceMetadataCollectionFactoryProphecy->create($resourceClass)->willReturn($resourceMetadata);
 
         $this->resourceAccessCheckerProphecy->isGranted(Argument::cetera())->shouldNotBeCalled();
 
-        ($this->securityStage)($resourceClass, 'item_query', []);
+        ($this->securityStage)($resourceClass, $operationName, []);
     }
 
     public function testGranted(): void
@@ -63,10 +70,8 @@ class SecurityStageTest extends TestCase
         $resourceClass = 'myResource';
         $isGranted = 'not_granted';
         $extraVariables = ['extra' => false];
-        $resourceMetadata = (new ResourceMetadata())->withGraphql([
-            $operationName => ['security' => $isGranted],
-        ]);
-        $this->resourceMetadataFactoryProphecy->create($resourceClass)->willReturn($resourceMetadata);
+        $resourceMetadata = new ResourceMetadataCollection($resourceClass, [(new ApiResource())->withGraphQlOperations([$operationName => (new Query())->withSecurity($isGranted)])]);
+        $this->resourceMetadataCollectionFactoryProphecy->create($resourceClass)->willReturn($resourceMetadata);
 
         $this->resourceAccessCheckerProphecy->isGranted($resourceClass, $isGranted, $extraVariables)->shouldBeCalled()->willReturn(true);
 
@@ -79,16 +84,14 @@ class SecurityStageTest extends TestCase
         $resourceClass = 'myResource';
         $isGranted = 'not_granted';
         $extraVariables = ['extra' => false];
-        $resourceMetadata = (new ResourceMetadata())->withGraphql([
-            $operationName => ['security' => $isGranted],
-        ]);
-        $this->resourceMetadataFactoryProphecy->create($resourceClass)->willReturn($resourceMetadata);
+        $resourceMetadata = new ResourceMetadataCollection($resourceClass, [(new ApiResource())->withGraphQlOperations([$operationName => (new Query())->withSecurity($isGranted)])]);
+        $this->resourceMetadataCollectionFactoryProphecy->create($resourceClass)->willReturn($resourceMetadata);
 
         $this->resourceAccessCheckerProphecy->isGranted($resourceClass, $isGranted, $extraVariables)->shouldBeCalled()->willReturn(false);
 
         $info = $this->prophesize(ResolveInfo::class)->reveal();
 
-        $this->expectException(Error::class);
+        $this->expectException(AccessDeniedHttpException::class);
         $this->expectExceptionMessage('Access Denied.');
 
         ($this->securityStage)($resourceClass, 'item_query', [
@@ -99,15 +102,13 @@ class SecurityStageTest extends TestCase
 
     public function testNoSecurityBundleInstalled(): void
     {
-        $this->securityStage = new SecurityStage($this->resourceMetadataFactoryProphecy->reveal(), null);
+        $this->securityStage = new SecurityStage($this->resourceMetadataCollectionFactoryProphecy->reveal(), null);
 
         $operationName = 'item_query';
         $resourceClass = 'myResource';
         $isGranted = 'not_granted';
-        $resourceMetadata = (new ResourceMetadata())->withGraphql([
-            $operationName => ['security' => $isGranted],
-        ]);
-        $this->resourceMetadataFactoryProphecy->create($resourceClass)->willReturn($resourceMetadata);
+        $resourceMetadata = new ResourceMetadataCollection($resourceClass, [(new ApiResource())->withGraphQlOperations([$operationName => (new Query())->withSecurity($isGranted)])]);
+        $this->resourceMetadataCollectionFactoryProphecy->create($resourceClass)->willReturn($resourceMetadata);
 
         $this->expectException(\LogicException::class);
 
@@ -116,14 +117,15 @@ class SecurityStageTest extends TestCase
 
     public function testNoSecurityBundleInstalledNoExpression(): void
     {
-        $this->securityStage = new SecurityStage($this->resourceMetadataFactoryProphecy->reveal(), null);
+        $this->securityStage = new SecurityStage($this->resourceMetadataCollectionFactoryProphecy->reveal(), null);
 
+        $operationName = 'item_query';
         $resourceClass = 'myResource';
-        $resourceMetadata = new ResourceMetadata();
-        $this->resourceMetadataFactoryProphecy->create($resourceClass)->willReturn($resourceMetadata);
+        $resourceMetadata = new ResourceMetadataCollection($resourceClass, [(new ApiResource())->withGraphQlOperations([$operationName => new Query()])]);
+        $this->resourceMetadataCollectionFactoryProphecy->create($resourceClass)->willReturn($resourceMetadata);
 
         $this->resourceAccessCheckerProphecy->isGranted(Argument::any())->shouldNotBeCalled();
 
-        ($this->securityStage)($resourceClass, 'item_query', []);
+        ($this->securityStage)($resourceClass, $operationName, []);
     }
 }

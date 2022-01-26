@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
@@ -44,7 +44,7 @@ class DummyOffer
     private $value;
 
     /**
-     * @var DummyAggregateOffer The dummy aggregate offer value
+     * @var DummyAggregateOffer|null The dummy aggregate offer value
      *
      * @ORM\ManyToOne(targetEntity="DummyAggregateOffer", inversedBy="offers")
      */

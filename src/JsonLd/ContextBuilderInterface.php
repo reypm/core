@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\JsonLd;
+namespace ApiPlatform\JsonLd;
 
 use ApiPlatform\Core\Api\UrlGeneratorInterface;
-use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
+use ApiPlatform\Exception\ResourceClassNotFoundException;
 
 /**
  * JSON-LD context builder interface.

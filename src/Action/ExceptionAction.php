@@ -11,60 +11,73 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Action;
+namespace ApiPlatform\Action;
 
-use ApiPlatform\Core\Util\ErrorFormatGuesser;
-use Symfony\Component\Debug\Exception\FlattenException;
+use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Util\ErrorFormatGuesser;
+use ApiPlatform\Util\OperationRequestInitiatorTrait;
+use ApiPlatform\Util\RequestAttributesExtractor;
+use Symfony\Component\Debug\Exception\FlattenException as LegacyFlattenException;
+use Symfony\Component\ErrorHandler\Exception\FlattenException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
- * Renders a normalized exception for a given {@see \Symfony\Component\Debug\Exception\FlattenException}.
- *
- * Usage:
- *
- *     $exceptionAction = new ExceptionAction(
- *         new Serializer(),
- *         [
- *             'jsonproblem' => ['application/problem+json'],
- *             'jsonld' => ['application/ld+json'],
- *         ],
- *         [
- *             ExceptionInterface::class => Response::HTTP_BAD_REQUEST,
- *             InvalidArgumentException::class => Response::HTTP_BAD_REQUEST,
- *         ]
- *     );
+ * Renders a normalized exception for a given {@see FlattenException} or {@see LegacyFlattenException}.
  *
  * @author Baptiste Meyer <baptiste.meyer@gmail.com>
  * @author Kévin Dunglas <dunglas@gmail.com>
  */
 final class ExceptionAction
 {
+    use OperationRequestInitiatorTrait;
+
     private $serializer;
     private $errorFormats;
     private $exceptionToStatus;
+    /**
+     * @var ResourceMetadataCollectionFactoryInterface|ResourceMetadataFactoryInterface|null
+     */
+    private $resourceMetadataFactory;
 
     /**
-     * @param array $errorFormats      A list of enabled formats, the first one will be the default
-     * @param array $exceptionToStatus A list of exceptions mapped to their HTTP status code
+     * @param array      $errorFormats            A list of enabled error formats
+     * @param array      $exceptionToStatus       A list of exceptions mapped to their HTTP status code
+     * @param mixed|null $resourceMetadataFactory
      */
-    public function __construct(SerializerInterface $serializer, array $errorFormats, array $exceptionToStatus = [])
+    public function __construct(SerializerInterface $serializer, array $errorFormats, array $exceptionToStatus = [], $resourceMetadataFactory = null)
     {
         $this->serializer = $serializer;
         $this->errorFormats = $errorFormats;
         $this->exceptionToStatus = $exceptionToStatus;
+        $this->resourceMetadataFactory = $resourceMetadataFactory;
+
+        if (null !== $resourceMetadataFactory && !$resourceMetadataFactory instanceof ResourceMetadataCollectionFactoryInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use "%s" instead of "%s".', ResourceMetadataCollectionFactoryInterface::class, ResourceMetadataFactoryInterface::class));
+        } else {
+            $this->resourceMetadataCollectionFactory = $resourceMetadataFactory;
+        }
     }
 
     /**
      * Converts an exception to a JSON response.
+     *
+     * @param FlattenException|LegacyFlattenException $exception
      */
-    public function __invoke(FlattenException $exception, Request $request): Response
+    public function __invoke($exception, Request $request): Response
     {
+        $operation = $this->initializeOperation($request);
         $exceptionClass = $exception->getClass();
         $statusCode = $exception->getStatusCode();
 
-        foreach ($this->exceptionToStatus as $class => $status) {
+        $exceptionToStatus = array_merge(
+            $this->exceptionToStatus,
+            $operation ? $operation->getExceptionToStatus() ?? [] : $this->getOperationExceptionToStatus($request)
+        );
+
+        foreach ($exceptionToStatus as $class => $status) {
             if (is_a($exceptionClass, $class, true)) {
                 $statusCode = $status;
 
@@ -79,5 +92,27 @@ final class ExceptionAction
         $headers['X-Frame-Options'] = 'deny';
 
         return new Response($this->serializer->serialize($exception, $format['key'], ['statusCode' => $statusCode]), $statusCode, $headers);
+    }
+
+    private function getOperationExceptionToStatus(Request $request): array
+    {
+        $attributes = RequestAttributesExtractor::extractAttributes($request);
+
+        if ([] === $attributes || null === $this->resourceMetadataFactory) {
+            return [];
+        }
+
+        $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);
+        $operationExceptionToStatus = $resourceMetadata->getOperationAttribute($attributes, 'exception_to_status', [], false);
+        $resourceExceptionToStatus = $resourceMetadata->getAttribute('exception_to_status', []);
+
+        if (!\is_array($operationExceptionToStatus) || !\is_array($resourceExceptionToStatus)) {
+            throw new \LogicException('"exception_to_status" attribute should be an array.');
+        }
+
+        return array_merge(
+            $resourceExceptionToStatus,
+            $operationExceptionToStatus
+        );
     }
 }

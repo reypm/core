@@ -11,11 +11,13 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Serializer;
+namespace ApiPlatform\Serializer;
 
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
-use ApiPlatform\Core\DataProvider\PaginatorInterface;
-use ApiPlatform\Core\DataProvider\PartialPaginatorInterface;
+use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\State\Pagination\PaginatorInterface;
+use ApiPlatform\State\Pagination\PartialPaginatorInterface;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerAwareTrait;
@@ -41,14 +43,22 @@ abstract class AbstractCollectionNormalizer implements NormalizerInterface, Norm
     protected $resourceClassResolver;
     protected $pageParameterName;
 
-    public function __construct(ResourceClassResolverInterface $resourceClassResolver, string $pageParameterName)
+    /**
+     * @var ResourceMetadataCollectionFactoryInterface|ResourceMetadataFactoryInterface
+     */
+    protected $resourceMetadataFactory;
+
+    public function __construct(ResourceClassResolverInterface $resourceClassResolver, string $pageParameterName, $resourceMetadataFactory = null)
     {
         $this->resourceClassResolver = $resourceClassResolver;
         $this->pageParameterName = $pageParameterName;
+        $this->resourceMetadataFactory = $resourceMetadataFactory;
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @return bool
      */
     public function supportsNormalization($data, $format = null)
     {
@@ -67,6 +77,8 @@ abstract class AbstractCollectionNormalizer implements NormalizerInterface, Norm
      * {@inheritdoc}
      *
      * @param iterable $object
+     *
+     * @return array|string|int|float|bool|\ArrayObject|null
      */
     public function normalize($object, $format = null, array $context = [])
     {
@@ -89,6 +101,7 @@ abstract class AbstractCollectionNormalizer implements NormalizerInterface, Norm
      * Normalizes a raw collection (not API resources).
      *
      * @param string|null $format
+     * @param mixed       $object
      */
     protected function normalizeRawCollection($object, $format = null, array $context = []): array
     {

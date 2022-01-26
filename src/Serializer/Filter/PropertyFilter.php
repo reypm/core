@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Serializer\Filter;
+namespace ApiPlatform\Serializer\Filter;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
@@ -47,7 +47,7 @@ final class PropertyFilter implements FilterInterface
         } elseif (\array_key_exists($this->parameterName, $commonAttribute = $request->attributes->get('_api_filters', []))) {
             $properties = $commonAttribute[$this->parameterName];
         } else {
-            $properties = $request->query->get($this->parameterName);
+            $properties = $request->query->all()[$this->parameterName] ?? null;
         }
 
         if (!\is_array($properties)) {

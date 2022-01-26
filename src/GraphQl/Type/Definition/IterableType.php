@@ -11,28 +11,70 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\GraphQl\Type\Definition;
+namespace ApiPlatform\GraphQl\Type\Definition;
 
 use GraphQL\Error\Error;
 use GraphQL\Language\AST\BooleanValueNode;
 use GraphQL\Language\AST\FloatValueNode;
 use GraphQL\Language\AST\IntValueNode;
 use GraphQL\Language\AST\ListValueNode;
+use GraphQL\Language\AST\Node;
+use GraphQL\Language\AST\NullValueNode;
 use GraphQL\Language\AST\ObjectValueNode;
 use GraphQL\Language\AST\StringValueNode;
 use GraphQL\Language\AST\ValueNode;
 use GraphQL\Type\Definition\ScalarType;
 use GraphQL\Utils\Utils;
 
+if (\PHP_VERSION_ID >= 70200) {
+    trait IterableTypeParseLiteralTrait
+    {
+        /**
+         * {@inheritdoc}
+         *
+         * @param ObjectValueNode|ListValueNode|IntValueNode|FloatValueNode|StringValueNode|BooleanValueNode|NullValueNode $valueNode
+         *
+         * @return mixed
+         */
+        public function parseLiteral(/*Node */ $valueNode, ?array $variables = null)
+        {
+            if ($valueNode instanceof ObjectValueNode || $valueNode instanceof ListValueNode) {
+                return $this->parseIterableLiteral($valueNode);
+            }
+
+            // Intentionally without message, as all information already in wrapped Exception
+            throw new \Exception();
+        }
+    }
+} else {
+    trait IterableTypeParseLiteralTrait
+    {
+        /**
+         * {@inheritdoc}
+         *
+         * @param ObjectValueNode|ListValueNode|IntValueNode|FloatValueNode|StringValueNode|BooleanValueNode|NullValueNode $valueNode
+         */
+        public function parseLiteral(Node $valueNode, ?array $variables = null)
+        {
+            if ($valueNode instanceof ObjectValueNode || $valueNode instanceof ListValueNode) {
+                return $this->parseIterableLiteral($valueNode);
+            }
+
+            // Intentionally without message, as all information already in wrapped Exception
+            throw new \Exception();
+        }
+    }
+}
+
 /**
  * Represents an iterable type.
- *
- * @experimental
  *
  * @author Alan Poulain <contact@alanpoulain.eu>
  */
 final class IterableType extends ScalarType implements TypeInterface
 {
+    use IterableTypeParseLiteralTrait;
+
     public function __construct()
     {
         $this->name = 'Iterable';
@@ -48,6 +90,8 @@ final class IterableType extends ScalarType implements TypeInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return mixed
      */
     public function serialize($value)
     {
@@ -60,6 +104,8 @@ final class IterableType extends ScalarType implements TypeInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @return mixed
      */
     public function parseValue($value)
     {
@@ -68,19 +114,6 @@ final class IterableType extends ScalarType implements TypeInterface
         }
 
         return $value;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function parseLiteral($valueNode, array $variables = null)
-    {
-        if ($valueNode instanceof ObjectValueNode || $valueNode instanceof ListValueNode) {
-            return $this->parseIterableLiteral($valueNode);
-        }
-
-        // Intentionally without message, as all information already in wrapped Exception
-        throw new \Exception();
     }
 
     /**

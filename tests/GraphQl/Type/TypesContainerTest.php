@@ -13,8 +13,9 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Tests\GraphQl\Type;
 
-use ApiPlatform\Core\GraphQl\Type\TypeNotFoundException;
-use ApiPlatform\Core\GraphQl\Type\TypesContainer;
+use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\GraphQl\Type\TypeNotFoundException;
+use ApiPlatform\GraphQl\Type\TypesContainer;
 use GraphQL\Type\Definition\Type as GraphQLType;
 use PHPUnit\Framework\TestCase;
 
@@ -23,6 +24,8 @@ use PHPUnit\Framework\TestCase;
  */
 class TypesContainerTest extends TestCase
 {
+    use ProphecyTrait;
+
     /**
      * @var TypesContainer
      */

@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
@@ -27,7 +27,7 @@ use Doctrine\ORM\Mapping as ORM;
 class DummyImmutableDate
 {
     /**
-     * @var int The id
+     * @var int|null The id
      *
      * @ORM\Column(type="integer")
      * @ORM\Id
@@ -44,10 +44,8 @@ class DummyImmutableDate
 
     /**
      * Get id.
-     *
-     * @return int
      */
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }

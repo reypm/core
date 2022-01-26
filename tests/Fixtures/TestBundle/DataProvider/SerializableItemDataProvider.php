@@ -11,14 +11,13 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\DataProvider;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\DataProvider;
 
 use ApiPlatform\Core\DataProvider\ItemDataProviderInterface;
 use ApiPlatform\Core\DataProvider\RestrictedDataProviderInterface;
 use ApiPlatform\Core\DataProvider\SerializerAwareDataProviderInterface;
 use ApiPlatform\Core\DataProvider\SerializerAwareDataProviderTrait;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Document\SerializableResource as SerializableResourceDocument;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\SerializableResource;
+use ApiPlatform\Tests\Fixtures\TestBundle\Model\SerializableResource;
 
 /**
  * @author Vincent Chalamon <vincentchalamon@gmail.com>
@@ -47,6 +46,6 @@ JSON
      */
     public function supports(string $resourceClass, string $operationName = null, array $context = []): bool
     {
-        return \in_array($resourceClass, [SerializableResource::class, SerializableResourceDocument::class], true);
+        return SerializableResource::class === $resourceClass;
     }
 }

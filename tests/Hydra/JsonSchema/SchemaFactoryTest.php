@@ -11,23 +11,30 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Hydra\JsonSchema;
+namespace ApiPlatform\Tests\Hydra\JsonSchema;
 
 use ApiPlatform\Core\Api\OperationType;
-use ApiPlatform\Core\Hydra\JsonSchema\SchemaFactory;
-use ApiPlatform\Core\JsonSchema\Schema;
-use ApiPlatform\Core\JsonSchema\SchemaFactory as BaseSchemaFactory;
-use ApiPlatform\Core\JsonSchema\TypeFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\PropertyNameCollection;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Dummy;
+use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\Hydra\JsonSchema\SchemaFactory;
+use ApiPlatform\JsonLd\ContextBuilder;
+use ApiPlatform\JsonSchema\Schema;
+use ApiPlatform\JsonSchema\SchemaFactory as BaseSchemaFactory;
+use ApiPlatform\JsonSchema\TypeFactoryInterface;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Dummy;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @group legacy
+ */
 class SchemaFactoryTest extends TestCase
 {
+    use ProphecyTrait;
+
     private $schemaFactory;
 
     protected function setUp(): void
@@ -36,7 +43,7 @@ class SchemaFactoryTest extends TestCase
         $resourceMetadataFactory = $this->prophesize(ResourceMetadataFactoryInterface::class);
         $resourceMetadataFactory->create(Dummy::class)->willReturn(new ResourceMetadata(Dummy::class));
         $propertyNameCollectionFactory = $this->prophesize(PropertyNameCollectionFactoryInterface::class);
-        $propertyNameCollectionFactory->create(Dummy::class, [])->willReturn(new PropertyNameCollection());
+        $propertyNameCollectionFactory->create(Dummy::class, ['enable_getter_setter_extraction' => true])->willReturn(new PropertyNameCollection());
         $propertyMetadataFactory = $this->prophesize(PropertyMetadataFactoryInterface::class);
 
         $baseSchemaFactory = new BaseSchemaFactory(
@@ -54,7 +61,7 @@ class SchemaFactoryTest extends TestCase
         $resultSchema = $this->schemaFactory->buildSchema(Dummy::class);
 
         $this->assertTrue($resultSchema->isDefined());
-        $this->assertEquals(Dummy::class.':jsonld', $resultSchema->getRootDefinitionKey());
+        $this->assertEquals(str_replace('\\', '.', Dummy::class).'.jsonld', $resultSchema->getRootDefinitionKey());
     }
 
     public function testCustomFormatBuildSchema(): void
@@ -62,7 +69,7 @@ class SchemaFactoryTest extends TestCase
         $resultSchema = $this->schemaFactory->buildSchema(Dummy::class, 'json');
 
         $this->assertTrue($resultSchema->isDefined());
-        $this->assertEquals(Dummy::class, $resultSchema->getRootDefinitionKey());
+        $this->assertEquals(str_replace('\\', '.', Dummy::class), $resultSchema->getRootDefinitionKey());
     }
 
     public function testHasRootDefinitionKeyBuildSchema(): void
@@ -71,14 +78,41 @@ class SchemaFactoryTest extends TestCase
         $definitions = $resultSchema->getDefinitions();
         $rootDefinitionKey = $resultSchema->getRootDefinitionKey();
 
-        $this->assertEquals(Dummy::class.':jsonld', $rootDefinitionKey);
         $this->assertArrayHasKey($rootDefinitionKey, $definitions);
         $this->assertArrayHasKey('properties', $definitions[$rootDefinitionKey]);
+        $properties = $resultSchema['definitions'][$rootDefinitionKey]['properties'];
+        $this->assertArrayHasKey('@context', $properties);
+        $this->assertSame(
+            [
+                'readOnly' => true,
+                'oneOf' => [
+                    ['type' => 'string'],
+                    [
+                        'type' => 'object',
+                        'properties' => [
+                            '@vocab' => [
+                                'type' => 'string',
+                            ],
+                            'hydra' => [
+                                'type' => 'string',
+                                'enum' => [ContextBuilder::HYDRA_NS],
+                            ],
+                        ],
+                        'required' => ['@vocab', 'hydra'],
+                        'additionalProperties' => true,
+                    ],
+                ],
+            ],
+            $properties['@context']
+        );
+        $this->assertArrayHasKey('@type', $properties);
+        $this->assertArrayHasKey('@id', $properties);
     }
 
     public function testSchemaTypeBuildSchema(): void
     {
         $resultSchema = $this->schemaFactory->buildSchema(Dummy::class, 'jsonld', Schema::TYPE_OUTPUT, OperationType::COLLECTION);
+        $definitionName = str_replace('\\', '.', Dummy::class).'.jsonld';
 
         $this->assertNull($resultSchema->getRootDefinitionKey());
         $this->assertArrayHasKey('properties', $resultSchema);
@@ -86,6 +120,10 @@ class SchemaFactoryTest extends TestCase
         $this->assertArrayHasKey('hydra:totalItems', $resultSchema['properties']);
         $this->assertArrayHasKey('hydra:view', $resultSchema['properties']);
         $this->assertArrayHasKey('hydra:search', $resultSchema['properties']);
+        $properties = $resultSchema['definitions'][$definitionName]['properties'];
+        $this->assertArrayNotHasKey('@context', $properties);
+        $this->assertArrayHasKey('@type', $properties);
+        $this->assertArrayHasKey('@id', $properties);
 
         $resultSchema = $this->schemaFactory->buildSchema(Dummy::class, 'jsonld', Schema::TYPE_OUTPUT, null, null, null, null, true);
 
@@ -95,5 +133,23 @@ class SchemaFactoryTest extends TestCase
         $this->assertArrayHasKey('hydra:totalItems', $resultSchema['properties']);
         $this->assertArrayHasKey('hydra:view', $resultSchema['properties']);
         $this->assertArrayHasKey('hydra:search', $resultSchema['properties']);
+        $properties = $resultSchema['definitions'][$definitionName]['properties'];
+        $this->assertArrayNotHasKey('@context', $properties);
+        $this->assertArrayHasKey('@type', $properties);
+        $this->assertArrayHasKey('@id', $properties);
+    }
+
+    public function testHasHydraViewNavigationBuildSchema(): void
+    {
+        $resultSchema = $this->schemaFactory->buildSchema(Dummy::class, 'jsonld', Schema::TYPE_OUTPUT, OperationType::COLLECTION);
+
+        $this->assertNull($resultSchema->getRootDefinitionKey());
+        $this->assertArrayHasKey('properties', $resultSchema);
+        $this->assertArrayHasKey('hydra:view', $resultSchema['properties']);
+        $this->assertArrayHasKey('properties', $resultSchema['properties']['hydra:view']);
+        $this->assertArrayHasKey('hydra:first', $resultSchema['properties']['hydra:view']['properties']);
+        $this->assertArrayHasKey('hydra:last', $resultSchema['properties']['hydra:view']['properties']);
+        $this->assertArrayHasKey('hydra:previous', $resultSchema['properties']['hydra:view']['properties']);
+        $this->assertArrayHasKey('hydra:next', $resultSchema['properties']['hydra:view']['properties']);
     }
 }

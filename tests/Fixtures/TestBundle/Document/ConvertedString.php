@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Document;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Document;
 
 use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Core\Bridge\Doctrine\MongoDbOdm\Filter\ExistsFilter;
+use ApiPlatform\Doctrine\Odm\Filter\ExistsFilter;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 
 /**
@@ -28,7 +28,7 @@ class ConvertedString
     /**
      * @var int
      *
-     * @ODM\Id(strategy="INCREMENT", type="integer")
+     * @ODM\Id(strategy="INCREMENT", type="int")
      */
     private $id;
 

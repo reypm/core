@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
@@ -32,7 +32,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class DummyTableInheritance
 {
     /**
-     * @var int The id
+     * @var int|null The id
      *
      * @ORM\Column(type="integer")
      * @ORM\Id
@@ -52,40 +52,34 @@ class DummyTableInheritance
     private $name;
 
     /**
-     * @var DummyTableInheritanceRelated
+     * @var DummyTableInheritanceRelated|null
      *
      * @ORM\ManyToOne(targetEntity="DummyTableInheritanceRelated", inversedBy="children")
      * @ORM\JoinColumn(nullable=true, onDelete="CASCADE")
      */
     private $parent;
 
-    public function getName()
+    public function getName(): ?string
     {
         return $this->name;
     }
 
-    public function setName($name)
+    public function setName(string $name): void
     {
         $this->name = $name;
     }
 
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * @return DummyTableInheritanceRelated
-     */
-    public function getParent()
+    public function getParent(): ?DummyTableInheritanceRelated
     {
         return $this->parent;
     }
 
-    /**
-     * @return $this
-     */
-    public function setParent(DummyTableInheritanceRelated $parent)
+    public function setParent(?DummyTableInheritanceRelated $parent): self
     {
         $this->parent = $parent;
 

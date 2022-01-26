@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use DateTime;
@@ -19,10 +19,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * @ApiResource(attributes={
- *     "normalization_context"={"groups"={"inspection_read"}},
- *     "denormalization_context"={"groups"={"inspection_write"}}
- * })
+ * @ApiResource(
+ *     attributes={
+ *         "normalization_context"={"groups"={"inspection_read"}},
+ *         "denormalization_context"={"groups"={"inspection_write"}}
+ *     },
+ *     graphql={}
+ * )
  * @ORM\Entity
  */
 class VoDummyInspection
@@ -38,7 +41,7 @@ class VoDummyInspection
     private $accepted;
 
     /**
-     * @var VoDummyCar
+     * @var VoDummyCar|null
      *
      * @ORM\ManyToOne(targetEntity="VoDummyCar", inversedBy="inspections")
      * @Groups({"inspection_read", "inspection_write"})

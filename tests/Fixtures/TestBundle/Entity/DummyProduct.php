@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Annotation\ApiSubresource;
@@ -40,7 +40,7 @@ class DummyProduct
     private $id;
 
     /**
-     * @var Collection
+     * @var Collection<int, DummyAggregateOffer>
      *
      * @ApiSubresource
      * @ORM\OneToMany(targetEntity="DummyAggregateOffer", mappedBy="product", cascade={"persist"})
@@ -55,7 +55,7 @@ class DummyProduct
     private $name;
 
     /**
-     * @var Collection
+     * @var Collection<int, DummyProduct>
      *
      * @ApiSubresource
      * @ORM\OneToMany(targetEntity="DummyProduct", mappedBy="parent")
@@ -109,7 +109,7 @@ class DummyProduct
         return $this->relatedProducts;
     }
 
-    public function setRelatedProducts(Collection $relatedProducts)
+    public function setRelatedProducts(iterable $relatedProducts)
     {
         $this->relatedProducts = $relatedProducts;
     }

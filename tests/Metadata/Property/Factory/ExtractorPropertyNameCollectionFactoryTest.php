@@ -11,16 +11,17 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Metadata\Property\Factory;
+namespace ApiPlatform\Tests\Metadata\Property\Factory;
 
-use ApiPlatform\Core\Exception\InvalidArgumentException;
-use ApiPlatform\Core\Exception\ResourceClassNotFoundException;
 use ApiPlatform\Core\Metadata\Extractor\XmlExtractor;
 use ApiPlatform\Core\Metadata\Extractor\YamlExtractor;
-use ApiPlatform\Core\Metadata\Property\Factory\ExtractorPropertyNameCollectionFactory;
-use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
-use ApiPlatform\Core\Metadata\Property\PropertyNameCollection;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\FileConfigDummy;
+use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\Exception\InvalidArgumentException;
+use ApiPlatform\Exception\ResourceClassNotFoundException;
+use ApiPlatform\Metadata\Property\Factory\ExtractorPropertyNameCollectionFactory;
+use ApiPlatform\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
+use ApiPlatform\Metadata\Property\PropertyNameCollection;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\FileConfigDummy;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -28,6 +29,8 @@ use PHPUnit\Framework\TestCase;
  */
 class ExtractorPropertyNameCollectionFactoryTest extends TestCase
 {
+    use ProphecyTrait;
+
     public function testCreateXml()
     {
         $configPath = __DIR__.'/../../../Fixtures/FileConfigurations/resources.xml';
@@ -57,17 +60,17 @@ class ExtractorPropertyNameCollectionFactoryTest extends TestCase
     public function testCreateWithNonexistentResourceXml()
     {
         $this->expectException(ResourceClassNotFoundException::class);
-        $this->expectExceptionMessage('The resource class "ApiPlatform\\Core\\Tests\\Fixtures\\TestBundle\\Entity\\ThisDoesNotExist" does not exist.');
+        $this->expectExceptionMessage('The resource class "ApiPlatform\\Tests\\Fixtures\\TestBundle\\Entity\\ThisDoesNotExist" does not exist.');
 
         $configPath = __DIR__.'/../../../Fixtures/FileConfigurations/resourcenotfound.xml';
 
-        (new ExtractorPropertyNameCollectionFactory(new XmlExtractor([$configPath])))->create('ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\ThisDoesNotExist');
+        (new ExtractorPropertyNameCollectionFactory(new XmlExtractor([$configPath])))->create('ApiPlatform\Tests\Fixtures\TestBundle\Entity\ThisDoesNotExist');
     }
 
     public function testCreateWithInvalidXml()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageRegExp('#.+Element \'\\{https://api-platform.com/schema/metadata\\}foo\': This element is not expected\\..+#');
+        $this->expectExceptionMessageMatches('#.+Element \'\\{https://api-platform.com/schema/metadata\\}foo\': This element is not expected\\..+#');
 
         $configPath = __DIR__.'/../../../Fixtures/FileConfigurations/propertyinvalid.xml';
 
@@ -103,17 +106,17 @@ class ExtractorPropertyNameCollectionFactoryTest extends TestCase
     public function testCreateWithNonexistentResourceYaml()
     {
         $this->expectException(ResourceClassNotFoundException::class);
-        $this->expectExceptionMessage('The resource class "ApiPlatform\\Core\\Tests\\Fixtures\\TestBundle\\Entity\\ThisDoesNotExist" does not exist.');
+        $this->expectExceptionMessage('The resource class "ApiPlatform\\Tests\\Fixtures\\TestBundle\\Entity\\ThisDoesNotExist" does not exist.');
 
         $configPath = __DIR__.'/../../../Fixtures/FileConfigurations/resourcenotfound.yml';
 
-        (new ExtractorPropertyNameCollectionFactory(new YamlExtractor([$configPath])))->create('ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\ThisDoesNotExist');
+        (new ExtractorPropertyNameCollectionFactory(new YamlExtractor([$configPath])))->create('ApiPlatform\Tests\Fixtures\TestBundle\Entity\ThisDoesNotExist');
     }
 
     public function testCreateWithMalformedResourcesSettingYaml()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageRegExp('/"resources" setting is expected to be null or an array, string given in ".+\\/\\.\\.\\/\\.\\.\\/\\.\\.\\/Fixtures\\/FileConfigurations\\/resourcesinvalid\\.yml"\\./');
+        $this->expectExceptionMessageMatches('/"resources" setting is expected to be null or an array, string given in ".+\\/\\.\\.\\/\\.\\.\\/\\.\\.\\/Fixtures\\/FileConfigurations\\/resourcesinvalid\\.yml"\\./');
 
         $configPath = __DIR__.'/../../../Fixtures/FileConfigurations/resourcesinvalid.yml';
 
@@ -123,7 +126,7 @@ class ExtractorPropertyNameCollectionFactoryTest extends TestCase
     public function testCreateWithMalformedPropertiesSettingYaml()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageRegExp('/"properties" setting is expected to be null or an array, string given in ".+\\/\\.\\.\\/\\.\\.\\/\\.\\.\\/Fixtures\\/FileConfigurations\\/propertiesinvalid\\.yml"\\./');
+        $this->expectExceptionMessageMatches('/"properties" setting is expected to be null or an array, string given in ".+\\/\\.\\.\\/\\.\\.\\/\\.\\.\\/Fixtures\\/FileConfigurations\\/propertiesinvalid\\.yml"\\./');
 
         $configPath = __DIR__.'/../../../Fixtures/FileConfigurations/propertiesinvalid.yml';
 
@@ -133,7 +136,7 @@ class ExtractorPropertyNameCollectionFactoryTest extends TestCase
     public function testCreateWithMalformedPropertySettingYaml()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessageRegExp('/"foo" setting is expected to be null or an array, string given in ".+\\/\\.\\.\\/\\.\\.\\/\\.\\.\\/Fixtures\\/FileConfigurations\\/propertyinvalid\\.yml"\\./');
+        $this->expectExceptionMessageMatches('/"foo" setting is expected to be null or an array, string given in ".+\\/\\.\\.\\/\\.\\.\\/\\.\\.\\/Fixtures\\/FileConfigurations\\/propertyinvalid\\.yml"\\./');
 
         $configPath = __DIR__.'/../../../Fixtures/FileConfigurations/propertyinvalid.yml';
 

@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
@@ -41,7 +41,7 @@ class EmbeddedDummy
     private $id;
 
     /**
-     * @var string The dummy name
+     * @var string|null The dummy name
      *
      * @ORM\Column(nullable=true)
      * @Groups({"embed"})
@@ -49,7 +49,7 @@ class EmbeddedDummy
     private $name;
 
     /**
-     * @var \DateTime A dummy date
+     * @var \DateTime|null A dummy date
      *
      * @ORM\Column(type="datetime", nullable=true)
      * @Assert\DateTime
@@ -65,7 +65,7 @@ class EmbeddedDummy
     public $embeddedDummy;
 
     /**
-     * @var RelatedDummy A related dummy
+     * @var RelatedDummy|null A related dummy
      *
      * @ORM\ManyToOne(targetEntity="RelatedDummy")
      */
@@ -105,10 +105,7 @@ class EmbeddedDummy
         $this->embeddedDummy = $embeddedDummy;
     }
 
-    /**
-     * @return \DateTime
-     */
-    public function getDummyDate()
+    public function getDummyDate(): ?\DateTime
     {
         return $this->dummyDate;
     }
@@ -118,10 +115,7 @@ class EmbeddedDummy
         $this->dummyDate = $dummyDate;
     }
 
-    /**
-     * @return RelatedDummy
-     */
-    public function getRelatedDummy()
+    public function getRelatedDummy(): ?RelatedDummy
     {
         return $this->relatedDummy;
     }

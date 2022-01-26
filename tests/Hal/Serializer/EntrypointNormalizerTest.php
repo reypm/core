@@ -11,23 +11,27 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Hal\Serializer;
+namespace ApiPlatform\Tests\Hal\Serializer;
 
 use ApiPlatform\Core\Api\Entrypoint;
 use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\Api\UrlGeneratorInterface;
-use ApiPlatform\Core\Hal\Serializer\EntrypointNormalizer;
 use ApiPlatform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Resource\ResourceMetadata;
 use ApiPlatform\Core\Metadata\Resource\ResourceNameCollection;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Dummy;
+use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\Hal\Serializer\EntrypointNormalizer;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Dummy;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @author Kévin Dunglas <dunglas@gmail.com>
+ * @group legacy
  */
 class EntrypointNormalizerTest extends TestCase
 {
+    use ProphecyTrait;
+
     public function testSupportNormalization()
     {
         $collection = new ResourceNameCollection();

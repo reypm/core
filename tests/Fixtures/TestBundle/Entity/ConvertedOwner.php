@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -26,7 +26,7 @@ use Doctrine\ORM\Mapping as ORM;
 class ConvertedOwner
 {
     /**
-     * @var int
+     * @var int|null
      *
      * @ORM\Column(type="integer", nullable=true)
      * @ORM\Id
@@ -35,7 +35,7 @@ class ConvertedOwner
     private $id;
 
     /**
-     * @var ConvertedRelated
+     * @var ConvertedRelated|null
      *
      * @ORM\ManyToOne(targetEntity="ConvertedRelated")
      */

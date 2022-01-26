@@ -11,12 +11,13 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Metadata\Property\Factory;
+namespace ApiPlatform\Tests\Metadata\Property\Factory;
 
-use ApiPlatform\Core\Metadata\Property\Factory\CachedPropertyNameCollectionFactory;
-use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
-use ApiPlatform\Core\Metadata\Property\PropertyNameCollection;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Dummy;
+use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\Metadata\Property\Factory\CachedPropertyNameCollectionFactory;
+use ApiPlatform\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
+use ApiPlatform\Metadata\Property\PropertyNameCollection;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Dummy;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheException;
 use Psr\Cache\CacheItemInterface;
@@ -27,6 +28,8 @@ use Psr\Cache\CacheItemPoolInterface;
  */
 class CachedPropertyNameCollectionFactoryTest extends TestCase
 {
+    use ProphecyTrait;
+
     public function testCreateWithItemHit()
     {
         $cacheItem = $this->prophesize(CacheItemInterface::class);
@@ -74,11 +77,10 @@ class CachedPropertyNameCollectionFactoryTest extends TestCase
         $decoratedPropertyNameCollectionFactory = $this->prophesize(PropertyNameCollectionFactoryInterface::class);
         $decoratedPropertyNameCollectionFactory->create(Dummy::class, [])->willReturn(new PropertyNameCollection(['id', 'name', 'description', 'dummy']))->shouldBeCalled();
 
-        $cacheException = $this->prophesize(\Exception::class);
-        $cacheException->willImplement(CacheException::class);
+        $cacheException = new class() extends \Exception implements CacheException {};
 
         $cacheItemPool = $this->prophesize(CacheItemPoolInterface::class);
-        $cacheItemPool->getItem($this->generateCacheKey())->willThrow($cacheException->reveal())->shouldBeCalled();
+        $cacheItemPool->getItem($this->generateCacheKey())->willThrow($cacheException)->shouldBeCalled();
 
         $cachedPropertyNameCollectionFactory = new CachedPropertyNameCollectionFactory($cacheItemPool->reveal(), $decoratedPropertyNameCollectionFactory->reveal());
         $resultedPropertyNameCollection = $cachedPropertyNameCollectionFactory->create(Dummy::class);

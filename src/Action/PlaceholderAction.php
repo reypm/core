@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Action;
+namespace ApiPlatform\Action;
 
 /**
  * Placeholder returning the data passed in parameter.

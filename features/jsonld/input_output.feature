@@ -69,17 +69,57 @@ Feature: JSON-LD DTO input and output
       "@type": "hydra:Collection",
       "hydra:member": [
         {
+          "@type": "DummyDtoCustom",
           "@id": "/dummy_dto_customs/1",
           "foo": "test",
           "bar": 1
         },
         {
+          "@type": "DummyDtoCustom",
           "@id": "/dummy_dto_customs/2",
           "foo": "test",
           "bar": 2
         }
       ],
       "hydra:totalItems": 2
+    }
+    """
+
+  @createSchema
+  Scenario: Get an item with same class as custom output
+    Given there is a DummyDtoOutputSameClass
+    When I send a "GET" request to "/dummy_dto_output_same_classes/1"
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be equal to:
+    """
+    {
+      "@context": "/contexts/DummyDtoOutputSameClass",
+      "@id": "/dummy_dto_output_same_classes/1",
+      "@type": "DummyDtoOutputSameClass",
+      "lorem": "test",
+      "ipsum": "modified",
+      "id": 1
+    }
+    """
+
+  @createSchema
+  Scenario: Get an item with a data transformer that will return the original class as a fallback
+    Given there is a DummyDtoOutputFallbackToSameClass
+    When I send a "GET" request to "/dummy_dto_output_fallback_to_same_classes/1"
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be equal to:
+    """
+    {
+      "@context": "/contexts/DummyDtoOutputFallbackToSameClass",
+      "@id": "/dummy_dto_output_fallback_to_same_classes/1",
+      "@type": "DummyDtoOutputFallbackToSameClass",
+      "lorem": "test",
+      "ipsum": "modified",
+      "id": 1
     }
     """
 
@@ -113,13 +153,15 @@ Feature: JSON-LD DTO input and output
         "hydra": "http://www.w3.org/ns/hydra/core#",
         "id": "OutputDto/id",
         "baz": "OutputDto/baz",
-        "bat": "OutputDto/bat"
+        "bat": "OutputDto/bat",
+        "relatedDummies": "OutputDto/relatedDummies"
       },
       "@type": "DummyDtoInputOutput",
       "@id": "/dummy_dto_input_outputs/1",
       "id": 1,
       "baz": 1,
-      "bat": "test"
+      "bat": "test",
+      "relatedDummies": []
     }
     """
     When I add "Accept" header equal to "application/ld+json"
@@ -140,13 +182,15 @@ Feature: JSON-LD DTO input and output
         "hydra": "http://www.w3.org/ns/hydra/core#",
         "id": "OutputDto/id",
         "baz": "OutputDto/baz",
-        "bat": "OutputDto/bat"
+        "bat": "OutputDto/bat",
+        "relatedDummies": "OutputDto/relatedDummies"
       },
       "@type": "DummyDtoInputOutput",
       "@id": "/dummy_dto_input_outputs/1",
       "id": 1,
       "baz": 2,
-      "bat": "test"
+      "bat": "test",
+      "relatedDummies": []
     }
     """
 
@@ -199,13 +243,15 @@ Feature: JSON-LD DTO input and output
         "hydra": "http://www.w3.org/ns/hydra/core#",
         "id": "OutputDto/id",
         "baz": "OutputDto/baz",
-        "bat": "OutputDto/bat"
+        "bat": "OutputDto/bat",
+        "relatedDummies": "OutputDto/relatedDummies"
       },
       "@type": "DummyDtoNoInput",
       "@id": "/dummy_dto_no_inputs/1",
       "id": 1,
       "baz": 1,
-      "bat": "test"
+      "bat": "test",
+      "relatedDummies": []
     }
     """
 
@@ -222,19 +268,21 @@ Feature: JSON-LD DTO input and output
         "hydra": "http://www.w3.org/ns/hydra/core#",
         "id": "OutputDto/id",
         "baz": "OutputDto/baz",
-        "bat": "OutputDto/bat"
+        "bat": "OutputDto/bat",
+        "relatedDummies": "OutputDto/relatedDummies"
       },
       "@type": "DummyDtoNoInput",
       "@id": "/dummy_dto_no_inputs/1",
       "id": 1,
       "baz": 1,
-      "bat": "testtest"
+      "bat": "testtest",
+      "relatedDummies": []
     }
     """
 
   @!mongodb
   Scenario: Use messenger with an input where the handler gives a synchronous result
-    And I send a "POST" request to "/messenger_with_inputs" with body:
+    When I send a "POST" request to "/messenger_with_inputs" with body:
     """
     {
       "var": "test"
@@ -271,3 +319,38 @@ Feature: JSON-LD DTO input and output
       "data": 123
     }
     """
+
+  @createSchema
+  Scenario: Initialize input data with a DataTransformerInitializer 
+    Given there is an InitializeInput object with id 1
+    When I send a "PUT" request to "/initialize_inputs/1" with body:
+    """
+    {
+      "name": "La peste"
+    }
+    """
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the JSON should be equal to:
+    """
+    {
+      "@context": "/contexts/InitializeInput",
+      "@id": "/initialize_inputs/1",
+      "@type": "InitializeInput",
+      "id": 1,
+      "manager": "Orwell",
+      "name": "La peste"
+    }
+    """
+
+  Scenario: Create a resource with a custom Input
+    When I send a "POST" request to "/dummy_dto_customs" with body:
+    """
+    {
+      "foo": "test",
+      "bar": "test" 
+    }
+    """
+    Then the response status code should be 400
+    And the response should be in JSON
+    And the JSON node "hydra:description" should be equal to "The input data is misformatted."

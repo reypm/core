@@ -11,9 +11,10 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -48,7 +49,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class DummyProperty
 {
     /**
-     * @var int
+     * @var int|null
      *
      * @ORM\Id
      * @ORM\Column(type="integer")
@@ -59,7 +60,7 @@ class DummyProperty
     private $id;
 
     /**
-     * @var string
+     * @var string|null
      *
      * @ORM\Column(nullable=true)
      *
@@ -68,7 +69,7 @@ class DummyProperty
     public $foo;
 
     /**
-     * @var string
+     * @var string|null
      *
      * @ORM\Column(nullable=true)
      *
@@ -77,7 +78,7 @@ class DummyProperty
     public $bar;
 
     /**
-     * @var string
+     * @var string|null
      *
      * @ORM\Column(nullable=true)
      *
@@ -86,7 +87,7 @@ class DummyProperty
     public $baz;
 
     /**
-     * @var DummyGroup
+     * @var DummyGroup|null
      *
      * @ORM\ManyToOne(targetEntity=DummyGroup::class, cascade={"persist"})
      *
@@ -95,7 +96,7 @@ class DummyProperty
     public $group;
 
     /**
-     * @var DummyGroup[]
+     * @var Collection<int, DummyGroup>
      *
      * @ORM\ManyToMany(targetEntity=DummyGroup::class, cascade={"persist"})
      * @Groups({"dummy_read", "dummy_graphql_read", "dummy_write"})
@@ -103,7 +104,7 @@ class DummyProperty
     public $groups;
 
     /**
-     * @var string
+     * @var string|null
      *
      * @ORM\Column(nullable=true)
      *
@@ -111,10 +112,7 @@ class DummyProperty
      */
     public $nameConverted;
 
-    /**
-     * @return int
-     */
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }

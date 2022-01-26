@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures;
+namespace ApiPlatform\Tests\Fixtures;
 
-use ApiPlatform\Core\HttpCache\PurgerInterface;
+use ApiPlatform\HttpCache\PurgerInterface;
 
 /**
  * @author Kévin Dunglas <dunglas@gmail.com>

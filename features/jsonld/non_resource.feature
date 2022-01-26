@@ -7,12 +7,13 @@ Feature: JSON-LD non-resource handling
     Given I add "Accept" header equal to "application/ld+json"
     And I add "Content-Type" header equal to "application/ld+json"
 
+  @createSchema
   Scenario: Get a resource containing a raw object
     When I send a "GET" request to "/contain_non_resources/1"
     Then the response status code should be 200
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be equal to:
+    And the JSON should be a superset of:
     """
     {
       "@context": "/contexts/ContainNonResource",
@@ -25,12 +26,42 @@ Feature: JSON-LD non-resource handling
         "id": "1-nested",
         "nested": null,
         "notAResource": {
+          "@type": "NotAResource",
           "foo": "f2",
           "bar": "b2"
         }
       },
       "notAResource": {
+        "@type": "NotAResource",
         "foo": "f1",
+        "bar": "b1"
+      }
+    }
+    """
+
+  Scenario: Get a resource containing a raw object with selected properties
+    Given there are 1 dummy objects with relatedDummy and its thirdLevel
+    When I send a "GET" request to "/contain_non_resources/1?properties[]=id&properties[nested][notAResource][]=foo&properties[notAResource][]=bar"
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be a superset of:
+    """
+    {
+      "@context": "/contexts/ContainNonResource",
+      "@id": "/contain_non_resources/1",
+      "@type": "ContainNonResource",
+      "id": 1,
+      "nested": {
+        "@id": "/contain_non_resources/1-nested",
+        "@type": "ContainNonResource",
+        "notAResource": {
+          "@type": "NotAResource",
+          "foo": "f2"
+        }
+      },
+      "notAResource": {
+        "@type": "NotAResource",
         "bar": "b1"
       }
     }
@@ -50,13 +81,14 @@ Feature: JSON-LD non-resource handling
     Then the response status code should be 201
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be equal to:
+    And the JSON should be a superset of:
     """
     {
       "@context": "/contexts/NonRelationResource",
       "@id": "/non_relation_resources/1",
       "@type": "NonRelationResource",
       "relation": {
+        "@type": "NonResourceClass",
         "foo": "test"
       },
       "id": 1
@@ -75,7 +107,7 @@ Feature: JSON-LD non-resource handling
     Then the response status code should be 201
     And the response should be in JSON
     And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
-    And the JSON should be equal to:
+    And the JSON should be a superset of:
     """
     {
       "@context": "/contexts/PlainObjectDummy",

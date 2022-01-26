@@ -11,9 +11,11 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Hal\Serializer;
+namespace ApiPlatform\Hal\Serializer;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
+use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Api\UrlGeneratorInterface;
+use ApiPlatform\Core\Api\IriConverterInterface as LegacyIriConverterInterface;
 use Symfony\Component\Serializer\Exception\LogicException;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -30,10 +32,14 @@ final class ObjectNormalizer implements NormalizerInterface, DenormalizerInterfa
     private $decorated;
     private $iriConverter;
 
-    public function __construct(NormalizerInterface $decorated, IriConverterInterface $iriConverter)
+    public function __construct(NormalizerInterface $decorated, $iriConverter)
     {
         $this->decorated = $decorated;
         $this->iriConverter = $iriConverter;
+
+        if ($iriConverter instanceof LegacyIriConverterInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use an implementation of "%s" instead of "%s".', IriConverterInterface::class, LegacyIriConverterInterface::class));
+        }
     }
 
     /**
@@ -54,6 +60,8 @@ final class ObjectNormalizer implements NormalizerInterface, DenormalizerInterfa
 
     /**
      * {@inheritdoc}
+     *
+     * @return array|string|int|float|bool|\ArrayObject|null
      */
     public function normalize($object, $format = null, array $context = [])
     {
@@ -74,7 +82,7 @@ final class ObjectNormalizer implements NormalizerInterface, DenormalizerInterfa
         $metadata = [
             '_links' => [
                 'self' => [
-                    'href' => $this->iriConverter->getIriFromItem($originalResource),
+                    'href' => $this->iriConverter instanceof LegacyIriConverterInterface ? $this->iriConverter->getIriFromItem($originalResource) : $this->iriConverter->getIriFromItem($originalResource, $context['operation_name'] ?? null, UrlGeneratorInterface::ABS_PATH, $context),
                 ],
             ],
         ];
@@ -95,6 +103,8 @@ final class ObjectNormalizer implements NormalizerInterface, DenormalizerInterfa
      * {@inheritdoc}
      *
      * @throws LogicException
+     *
+     * @return mixed
      */
     public function denormalize($data, $class, $format = null, array $context = [])
     {

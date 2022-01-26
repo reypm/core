@@ -11,7 +11,9 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Dto;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Dto;
+
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\RelatedDummy;
 
 /**
  * @author Kévin Dunglas <dunglas@gmail.com>
@@ -27,4 +29,9 @@ class InputDto
      * @var int
      */
     public $bar;
+
+    /**
+     * @var RelatedDummy[]
+     */
+    public $relatedDummies;
 }

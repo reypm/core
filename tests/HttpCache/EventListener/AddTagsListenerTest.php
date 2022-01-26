@@ -11,21 +11,32 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\HttpCache\EventListener;
+namespace ApiPlatform\Tests\HttpCache\EventListener;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
-use ApiPlatform\Core\HttpCache\EventListener\AddTagsListener;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Dummy;
+use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\HttpCache\EventListener\AddTagsListener;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Operations;
+use ApiPlatform\Metadata\Resource\Factory\ResourceMetadataCollectionFactoryInterface;
+use ApiPlatform\Metadata\Resource\ResourceMetadataCollection;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Dummy;
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
+use Symfony\Component\HttpKernel\Event\ResponseEvent;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 /**
  * @author Kévin Dunglas <dunglas@gmail.com>
+ * @group legacy
  */
 class AddTagsListenerTest extends TestCase
 {
+    use ProphecyTrait;
+
     public function testDoNotSetHeaderWhenMethodNotCacheable()
     {
         $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
@@ -37,12 +48,15 @@ class AddTagsListenerTest extends TestCase
         $response->setPublic();
         $response->setEtag('foo');
 
-        $event = $this->prophesize(FilterResponseEvent::class);
-        $event->getRequest()->willReturn($request)->shouldBeCalled();
-        $event->getResponse()->willReturn($response)->shouldBeCalled();
+        $event = new ResponseEvent(
+            $this->prophesize(HttpKernelInterface::class)->reveal(),
+            $request,
+            \defined(HttpKernelInterface::class.'::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST,
+            $response
+        );
 
         $listener = new AddTagsListener($iriConverterProphecy->reveal());
-        $listener->onKernelResponse($event->reveal());
+        $listener->onKernelResponse($event);
 
         $this->assertFalse($response->headers->has('Cache-Tags'));
     }
@@ -52,15 +66,16 @@ class AddTagsListenerTest extends TestCase
         $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
 
         $request = new Request([], [], ['_resources' => ['/foo', '/bar'], '_api_resource_class' => Dummy::class, '_api_item_operation_name' => 'get']);
-
         $response = new Response();
-
-        $event = $this->prophesize(FilterResponseEvent::class);
-        $event->getRequest()->willReturn($request)->shouldBeCalled();
-        $event->getResponse()->willReturn($response)->shouldBeCalled();
+        $event = new ResponseEvent(
+            $this->prophesize(HttpKernelInterface::class)->reveal(),
+            $request,
+            \defined(HttpKernelInterface::class.'::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST,
+            $response
+        );
 
         $listener = new AddTagsListener($iriConverterProphecy->reveal());
-        $listener->onKernelResponse($event->reveal());
+        $listener->onKernelResponse($event);
 
         $this->assertFalse($response->headers->has('Cache-Tags'));
     }
@@ -69,18 +84,19 @@ class AddTagsListenerTest extends TestCase
     {
         $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
 
-        $request = new Request([], [], ['_resources' => ['/foo', '/bar']]);
-
         $response = new Response();
         $response->setPublic();
         $response->setEtag('foo');
 
-        $event = $this->prophesize(FilterResponseEvent::class);
-        $event->getRequest()->willReturn($request)->shouldBeCalled();
-        $event->getResponse()->willReturn($response)->shouldBeCalled();
+        $event = new ResponseEvent(
+            $this->prophesize(HttpKernelInterface::class)->reveal(),
+            new Request([], [], ['_resources' => ['/foo', '/bar']]),
+            \defined(HttpKernelInterface::class.'::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST,
+            $response
+        );
 
         $listener = new AddTagsListener($iriConverterProphecy->reveal());
-        $listener->onKernelResponse($event->reveal());
+        $listener->onKernelResponse($event);
 
         $this->assertFalse($response->headers->has('Cache-Tags'));
     }
@@ -89,18 +105,19 @@ class AddTagsListenerTest extends TestCase
     {
         $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
 
-        $request = new Request([], [], ['_resources' => [], '_api_resource_class' => Dummy::class, '_api_item_operation_name' => 'get']);
-
         $response = new Response();
         $response->setPublic();
         $response->setEtag('foo');
 
-        $event = $this->prophesize(FilterResponseEvent::class);
-        $event->getRequest()->willReturn($request)->shouldBeCalled();
-        $event->getResponse()->willReturn($response)->shouldBeCalled();
+        $event = new ResponseEvent(
+            $this->prophesize(HttpKernelInterface::class)->reveal(),
+            new Request([], [], ['_resources' => [], '_api_resource_class' => Dummy::class, '_api_item_operation_name' => 'get']),
+            \defined(HttpKernelInterface::class.'::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST,
+            $response
+        );
 
         $listener = new AddTagsListener($iriConverterProphecy->reveal());
-        $listener->onKernelResponse($event->reveal());
+        $listener->onKernelResponse($event);
 
         $this->assertFalse($response->headers->has('Cache-Tags'));
     }
@@ -109,18 +126,19 @@ class AddTagsListenerTest extends TestCase
     {
         $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
 
-        $request = new Request([], [], ['_resources' => ['/foo', '/bar'], '_api_resource_class' => Dummy::class, '_api_item_operation_name' => 'get']);
-
         $response = new Response();
         $response->setPublic();
         $response->setEtag('foo');
 
-        $event = $this->prophesize(FilterResponseEvent::class);
-        $event->getRequest()->willReturn($request)->shouldBeCalled();
-        $event->getResponse()->willReturn($response)->shouldBeCalled();
+        $event = new ResponseEvent(
+            $this->prophesize(HttpKernelInterface::class)->reveal(),
+            new Request([], [], ['_resources' => ['/foo', '/bar'], '_api_resource_class' => Dummy::class, '_api_item_operation_name' => 'get']),
+            \defined(HttpKernelInterface::class.'::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST,
+            $response
+        );
 
         $listener = new AddTagsListener($iriConverterProphecy->reveal());
-        $listener->onKernelResponse($event->reveal());
+        $listener->onKernelResponse($event);
 
         $this->assertSame('/foo,/bar', $response->headers->get('Cache-Tags'));
     }
@@ -128,20 +146,21 @@ class AddTagsListenerTest extends TestCase
     public function testAddCollectionIri()
     {
         $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
-        $iriConverterProphecy->getIriFromResourceClass(Dummy::class)->willReturn('/dummies')->shouldBeCalled();
-
-        $request = new Request([], [], ['_resources' => ['/foo', '/bar'], '_api_resource_class' => Dummy::class, '_api_collection_operation_name' => 'get']);
+        $iriConverterProphecy->getIriFromResourceClass(Dummy::class, null, 1, Argument::type('array'))->willReturn('/dummies')->shouldBeCalled();
 
         $response = new Response();
         $response->setPublic();
         $response->setEtag('foo');
 
-        $event = $this->prophesize(FilterResponseEvent::class);
-        $event->getRequest()->willReturn($request)->shouldBeCalled();
-        $event->getResponse()->willReturn($response)->shouldBeCalled();
+        $event = new ResponseEvent(
+            $this->prophesize(HttpKernelInterface::class)->reveal(),
+            new Request([], [], ['_resources' => ['/foo', '/bar'], '_api_resource_class' => Dummy::class, '_api_collection_operation_name' => 'get']),
+            \defined(HttpKernelInterface::class.'::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST,
+            $response
+        );
 
         $listener = new AddTagsListener($iriConverterProphecy->reveal());
-        $listener->onKernelResponse($event->reveal());
+        $listener->onKernelResponse($event);
 
         $this->assertSame('/foo,/bar,/dummies', $response->headers->get('Cache-Tags'));
     }
@@ -149,20 +168,21 @@ class AddTagsListenerTest extends TestCase
     public function testAddCollectionIriWhenCollectionIsEmpty()
     {
         $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
-        $iriConverterProphecy->getIriFromResourceClass(Dummy::class)->willReturn('/dummies')->shouldBeCalled();
-
-        $request = new Request([], [], ['_resources' => [], '_api_resource_class' => Dummy::class, '_api_collection_operation_name' => 'get']);
+        $iriConverterProphecy->getIriFromResourceClass(Dummy::class, null, 1, Argument::type('array'))->willReturn('/dummies')->shouldBeCalled();
 
         $response = new Response();
         $response->setPublic();
         $response->setEtag('foo');
 
-        $event = $this->prophesize(FilterResponseEvent::class);
-        $event->getRequest()->willReturn($request)->shouldBeCalled();
-        $event->getResponse()->willReturn($response)->shouldBeCalled();
+        $event = new ResponseEvent(
+            $this->prophesize(HttpKernelInterface::class)->reveal(),
+            new Request([], [], ['_resources' => [], '_api_resource_class' => Dummy::class, '_api_collection_operation_name' => 'get']),
+            \defined(HttpKernelInterface::class.'::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST,
+            $response
+        );
 
         $listener = new AddTagsListener($iriConverterProphecy->reveal());
-        $listener->onKernelResponse($event->reveal());
+        $listener->onKernelResponse($event);
 
         $this->assertSame('/dummies', $response->headers->get('Cache-Tags'));
     }
@@ -170,21 +190,49 @@ class AddTagsListenerTest extends TestCase
     public function testAddSubResourceCollectionIri()
     {
         $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
-        $iriConverterProphecy->getIriFromResourceClass(Dummy::class)->willReturn('/dummies')->shouldBeCalled();
-
-        $request = new Request([], [], ['_resources' => ['/foo', '/bar'], '_api_resource_class' => Dummy::class, '_api_subresource_operation_name' => 'api_dummies_relatedDummies_get_subresource', '_api_subresource_context' => ['collection' => true]]);
+        $iriConverterProphecy->getIriFromResourceClass(Dummy::class, null, 1, Argument::type('array'))->willReturn('/dummies')->shouldBeCalled();
 
         $response = new Response();
         $response->setPublic();
         $response->setEtag('foo');
 
-        $event = $this->prophesize(FilterResponseEvent::class);
-        $event->getRequest()->willReturn($request)->shouldBeCalled();
-        $event->getResponse()->willReturn($response)->shouldBeCalled();
+        $event = new ResponseEvent(
+            $this->prophesize(HttpKernelInterface::class)->reveal(),
+            new Request([], [], ['_resources' => ['/foo', '/bar'], '_api_resource_class' => Dummy::class, '_api_subresource_operation_name' => 'api_dummies_relatedDummies_get_subresource', '_api_subresource_context' => ['collection' => true]]),
+            \defined(HttpKernelInterface::class.'::MAIN_REQUEST') ? HttpKernelInterface::MAIN_REQUEST : HttpKernelInterface::MASTER_REQUEST,
+            $response
+        );
 
         $listener = new AddTagsListener($iriConverterProphecy->reveal());
-        $listener->onKernelResponse($event->reveal());
+        $listener->onKernelResponse($event);
 
         $this->assertSame('/foo,/bar,/dummies', $response->headers->get('Cache-Tags'));
+    }
+
+    public function testAddTagsWithXKey()
+    {
+        $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
+        $iriConverterProphecy->getIriFromResourceClass(Dummy::class, 'get', 1, Argument::type('array'))->willReturn('/dummies')->shouldBeCalled();
+
+        $resourceMetadataCollectionFactoryProphecy = $this->prophesize(ResourceMetadataCollectionFactoryInterface::class);
+        $dummyMetadata = new ResourceMetadataCollection(Dummy::class, [(new ApiResource())->withOperations(new Operations(['get' => new GetCollection()]))]);
+        $resourceMetadataCollectionFactoryProphecy->create(Dummy::class)->willReturn($dummyMetadata);
+
+        $response = new Response();
+        $response->setPublic();
+        $response->setEtag('foo');
+
+        $event = new ResponseEvent(
+            $this->prophesize(HttpKernelInterface::class)->reveal(),
+            new Request([], [], ['_resources' => ['/foo', '/bar'], '_api_resource_class' => Dummy::class, '_api_item_operation_name' => 'get']),
+            HttpKernelInterface::MASTER_REQUEST,
+            $response
+        );
+
+        $listener = new AddTagsListener($iriConverterProphecy->reveal(), $resourceMetadataCollectionFactoryProphecy->reveal(), true);
+        $listener->onKernelResponse($event);
+
+        $this->assertSame('/foo,/bar,/dummies', $response->headers->get('Cache-Tags'));
+        $this->assertSame('/foo /bar /dummies', $response->headers->get('xkey'));
     }
 }

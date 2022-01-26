@@ -445,7 +445,7 @@ Feature: Table inheritance
     }
     """
 
-   Scenario: Get the parent interface collection
+  Scenario: Get the parent interface collection
     When I send a "GET" request to "/resource_interfaces"
     Then the response status code should be 200
     And the response should be in JSON
@@ -538,7 +538,7 @@ Feature: Table inheritance
         },
         "@id": {
           "type": "string",
-          "pattern": "^/resource_interfaces/single%2520item$"
+          "pattern": "^/resource_interfaces/single%20item$"
         },
         "@type": {
           "type": "string",

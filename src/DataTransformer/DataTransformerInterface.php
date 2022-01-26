@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\DataTransformer;
+namespace ApiPlatform\DataTransformer;
 
 /**
  * Transforms a DTO or an Anonymous class to a Resource object.
@@ -22,7 +22,7 @@ interface DataTransformerInterface
 {
     /**
      * Transforms the given object to something else, usually another object.
-     * This must return the original object if no transformation has been done.
+     * This must return the original object if no transformations have been done.
      *
      * @param object $object
      *

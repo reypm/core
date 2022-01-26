@@ -11,12 +11,15 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Hal\Serializer;
+namespace ApiPlatform\Hal\Serializer;
 
-use ApiPlatform\Core\Serializer\AbstractItemNormalizer;
-use ApiPlatform\Core\Serializer\CacheKeyTrait;
-use ApiPlatform\Core\Serializer\ContextTrait;
-use ApiPlatform\Core\Util\ClassInfoTrait;
+use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
+use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Serializer\AbstractItemNormalizer;
+use ApiPlatform\Serializer\CacheKeyTrait;
+use ApiPlatform\Serializer\ContextTrait;
+use ApiPlatform\Util\ClassInfoTrait;
+use Symfony\Component\PropertyInfo\Type;
 use Symfony\Component\Serializer\Exception\LogicException;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\Mapping\AttributeMetadataInterface;
@@ -47,6 +50,8 @@ final class ItemNormalizer extends AbstractItemNormalizer
 
     /**
      * {@inheritdoc}
+     *
+     * @return array|string|int|float|bool|\ArrayObject|null
      */
     public function normalize($object, $format = null, array $context = [])
     {
@@ -96,6 +101,8 @@ final class ItemNormalizer extends AbstractItemNormalizer
      * {@inheritdoc}
      *
      * @throws LogicException
+     *
+     * @return mixed
      */
     public function denormalize($data, $class, $format = null, array $context = [])
     {
@@ -105,7 +112,7 @@ final class ItemNormalizer extends AbstractItemNormalizer
     /**
      * {@inheritdoc}
      */
-    protected function getAttributes($object, $format = null, array $context): array
+    protected function getAttributes($object, $format = null, array $context = []): array
     {
         return $this->getComponents($object, $format, $context)['states'];
     }
@@ -133,14 +140,16 @@ final class ItemNormalizer extends AbstractItemNormalizer
         ];
 
         foreach ($attributes as $attribute) {
+            /** @var ApiProperty|PropertyMetadata */
             $propertyMetadata = $this->propertyMetadataFactory->create($context['resource_class'], $attribute, $options);
 
-            $type = $propertyMetadata->getType();
+            // TODO: 3.0 support multiple types, default value of types will be [] instead of null
+            $type = $propertyMetadata instanceof PropertyMetadata ? $propertyMetadata->getType() : ($propertyMetadata->getBuiltinTypes()[0] ?? null);
             $isOne = $isMany = false;
 
             if (null !== $type) {
                 if ($type->isCollection()) {
-                    $valueType = $type->getCollectionValueType();
+                    $valueType = method_exists(Type::class, 'getCollectionValueTypes') ? ($type->getCollectionValueTypes()[0] ?? null) : $type->getCollectionValueType();
                     $isMany = null !== $valueType && ($className = $valueType->getClassName()) && $this->resourceClassResolver->isResourceClass($className);
                 } else {
                     $className = $type->getClassName();
@@ -223,6 +232,8 @@ final class ItemNormalizer extends AbstractItemNormalizer
 
     /**
      * Gets the IRI of the given relation.
+     *
+     * @param mixed $rel
      *
      * @throws UnexpectedValueException
      */

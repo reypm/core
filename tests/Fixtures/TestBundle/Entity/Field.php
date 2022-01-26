@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -30,7 +30,7 @@ class Field implements \JsonSerializable
     private $id;
 
     /**
-     * @var Content|null
+     * @var Content
      *
      * @ORM\ManyToOne(targetEntity=Content::class, inversedBy="fields")
      * @ORM\JoinColumn(nullable=false)
@@ -38,14 +38,14 @@ class Field implements \JsonSerializable
     private $content;
 
     /**
-     * @var string|null
+     * @var string
      *
      * @ORM\Column(type="string")
      */
     private $name;
 
     /**
-     * @var string|null
+     * @var string
      *
      * @ORM\Column(type="text")
      */
@@ -88,7 +88,10 @@ class Field implements \JsonSerializable
 
     /**
      * {@inheritdoc}
+     *
+     * @return mixed
      */
+    #[\ReturnTypeWillChange]
     public function jsonSerialize()
     {
         return [

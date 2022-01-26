@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Action;
+namespace ApiPlatform\Tests\Action;
 
-use ApiPlatform\Core\Action\PlaceholderAction;
+use ApiPlatform\Action\PlaceholderAction;
 use PHPUnit\Framework\TestCase;
 
 /**

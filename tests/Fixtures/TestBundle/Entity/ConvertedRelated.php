@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
@@ -23,7 +23,7 @@ use Doctrine\ORM\Mapping as ORM;
 class ConvertedRelated
 {
     /**
-     * @var int
+     * @var int|null
      *
      * @ORM\Column(type="integer", nullable=true)
      * @ORM\Id

@@ -11,10 +11,11 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Hydra\Serializer;
+namespace ApiPlatform\Tests\Hydra\Serializer;
 
 use ApiPlatform\Core\Api\UrlGeneratorInterface;
-use ApiPlatform\Core\Hydra\Serializer\ConstraintViolationListNormalizer;
+use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\Hydra\Serializer\ConstraintViolationListNormalizer;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
@@ -27,6 +28,8 @@ use Symfony\Component\Validator\ConstraintViolationList;
  */
 class ConstraintViolationNormalizerTest extends TestCase
 {
+    use ProphecyTrait;
+
     public function testSupportNormalization()
     {
         $urlGeneratorProphecy = $this->prophesize(UrlGeneratorInterface::class);
@@ -40,7 +43,10 @@ class ConstraintViolationNormalizerTest extends TestCase
         $this->assertTrue($normalizer->hasCacheableSupportsMethod());
     }
 
-    public function testNormalize()
+    /**
+     * @dataProvider payloadFieldsProvider
+     */
+    public function testNormalize(?array $fields, array $result)
     {
         $urlGeneratorProphecy = $this->prophesize(UrlGeneratorInterface::class);
         $nameConverterProphecy = $this->prophesize(NameConverterInterface::class);
@@ -50,13 +56,13 @@ class ConstraintViolationNormalizerTest extends TestCase
             return '_'.$args[0];
         });
 
-        $normalizer = new ConstraintViolationListNormalizer($urlGeneratorProphecy->reveal(), ['severity', 'anotherField1'], $nameConverterProphecy->reveal());
+        $normalizer = new ConstraintViolationListNormalizer($urlGeneratorProphecy->reveal(), $fields, $nameConverterProphecy->reveal());
 
         // Note : we use NotNull constraint and not Constraint class because Constraint is abstract
         $constraint = new NotNull();
         $constraint->payload = ['severity' => 'warning', 'anotherField2' => 'aValue'];
         $list = new ConstraintViolationList([
-            new ConstraintViolation('a', 'b', [], 'c', 'd', 'e', null, null, $constraint),
+            new ConstraintViolation('a', 'b', [], 'c', 'd', 'e', null, 'f24bdbad0becef97a6887238aa58221c', $constraint),
             new ConstraintViolation('1', '2', [], '3', '4', '5'),
         ]);
 
@@ -64,22 +70,31 @@ class ConstraintViolationNormalizerTest extends TestCase
             '@context' => '/context/foo',
             '@type' => 'ConstraintViolationList',
             'hydra:title' => 'An error occurred',
-            'hydra:description' => '_d: a
-_4: 1',
+            'hydra:description' => "_d: a\n_4: 1",
             'violations' => [
                 [
                     'propertyPath' => '_d',
                     'message' => 'a',
-                    'payload' => [
-                        'severity' => 'warning',
-                    ],
+                    'code' => 'f24bdbad0becef97a6887238aa58221c',
                 ],
                 [
                     'propertyPath' => '_4',
                     'message' => '1',
+                    'code' => null,
                 ],
             ],
         ];
+        if ([] !== $result) {
+            $expected['violations'][0]['payload'] = $result;
+        }
+
         $this->assertEquals($expected, $normalizer->normalize($list));
+    }
+
+    public function payloadFieldsProvider(): iterable
+    {
+        yield [['severity', 'anotherField1'], ['severity' => 'warning']];
+        yield [null, ['severity' => 'warning', 'anotherField2' => 'aValue']];
+        yield [[], []];
     }
 }

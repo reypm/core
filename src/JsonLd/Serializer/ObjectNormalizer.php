@@ -11,11 +11,12 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\JsonLd\Serializer;
+namespace ApiPlatform\JsonLd\Serializer;
 
-use ApiPlatform\Core\Api\IriConverterInterface;
-use ApiPlatform\Core\JsonLd\AnonymousContextBuilderInterface;
-use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
+use ApiPlatform\Api\IriConverterInterface;
+use ApiPlatform\Core\Api\IriConverterInterface as LegacyIriConverterInterface;
+use ApiPlatform\Exception\InvalidArgumentException;
+use ApiPlatform\JsonLd\AnonymousContextBuilderInterface;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
@@ -33,11 +34,15 @@ final class ObjectNormalizer implements NormalizerInterface, CacheableSupportsMe
     private $iriConverter;
     private $anonymousContextBuilder;
 
-    public function __construct(NormalizerInterface $decorated, IriConverterInterface $iriConverter, AnonymousContextBuilderInterface $anonymousContextBuilder)
+    public function __construct(NormalizerInterface $decorated, $iriConverter, AnonymousContextBuilderInterface $anonymousContextBuilder)
     {
         $this->decorated = $decorated;
         $this->iriConverter = $iriConverter;
         $this->anonymousContextBuilder = $anonymousContextBuilder;
+
+        if ($iriConverter instanceof LegacyIriConverterInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use an implementation of "%s" instead of "%s".', IriConverterInterface::class, LegacyIriConverterInterface::class));
+        }
     }
 
     /**
@@ -58,6 +63,8 @@ final class ObjectNormalizer implements NormalizerInterface, CacheableSupportsMe
 
     /**
      * {@inheritdoc}
+     *
+     * @return array|string|int|float|bool|\ArrayObject|null
      */
     public function normalize($object, $format = null, array $context = [])
     {
@@ -79,12 +86,16 @@ final class ObjectNormalizer implements NormalizerInterface, CacheableSupportsMe
         $context['api_empty_resource_as_iri'] = true;
 
         $data = $this->decorated->normalize($object, $format, $context);
-        if (!\is_array($data)) {
+        if (!\is_array($data) || !$data) {
             return $data;
         }
 
         if (isset($originalResource)) {
-            $context['output']['iri'] = $this->iriConverter->getIriFromItem($originalResource);
+            try {
+                $context['output']['iri'] = $this->iriConverter->getIriFromItem($originalResource);
+            } catch (InvalidArgumentException $e) {
+                // The original resource has no identifiers
+            }
             $context['api_resource'] = $originalResource;
         }
 

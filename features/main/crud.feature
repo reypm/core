@@ -1,3 +1,4 @@
+# todo remove @v3 tag in 3.0
 Feature: Create-Retrieve-Update-Delete
   In order to use an hypermedia API
   As a client software developer
@@ -143,7 +144,7 @@ Feature: Create-Retrieve-Update-Delete
       "hydra:totalItems": 1,
       "hydra:search": {
         "@type": "hydra:IriTemplate",
-        "hydra:template": "/dummies{?dummyBoolean,relatedDummy.embeddedDummy.dummyBoolean,dummyDate[before],dummyDate[strictly_before],dummyDate[after],dummyDate[strictly_after],relatedDummy.dummyDate[before],relatedDummy.dummyDate[strictly_before],relatedDummy.dummyDate[after],relatedDummy.dummyDate[strictly_after],exists[alias],exists[description],exists[relatedDummy.name],exists[dummyBoolean],exists[relatedDummy],dummyFloat,dummyFloat[],dummyPrice,dummyPrice[],order[id],order[name],order[description],order[relatedDummy.name],order[relatedDummy.symfony],order[dummyDate],dummyFloat[between],dummyFloat[gt],dummyFloat[gte],dummyFloat[lt],dummyFloat[lte],dummyPrice[between],dummyPrice[gt],dummyPrice[gte],dummyPrice[lt],dummyPrice[lte],id,id[],name,alias,description,relatedDummy.name,relatedDummy.name[],relatedDummies,relatedDummies[],dummy,relatedDummies.name,relatedDummy.thirdLevel.level,relatedDummy.thirdLevel.level[],relatedDummy.thirdLevel.fourthLevel.level,relatedDummy.thirdLevel.fourthLevel.level[],relatedDummy.thirdLevel.badFourthLevel.level,relatedDummy.thirdLevel.badFourthLevel.level[],relatedDummy.thirdLevel.fourthLevel.badThirdLevel.level,relatedDummy.thirdLevel.fourthLevel.badThirdLevel.level[],name_converted,properties[]}",
+        "hydra:template": "/dummies{?dummyBoolean,relatedDummy.embeddedDummy.dummyBoolean,dummyDate[before],dummyDate[strictly_before],dummyDate[after],dummyDate[strictly_after],relatedDummy.dummyDate[before],relatedDummy.dummyDate[strictly_before],relatedDummy.dummyDate[after],relatedDummy.dummyDate[strictly_after],exists[alias],exists[description],exists[relatedDummy.name],exists[dummyBoolean],exists[relatedDummy],exists[relatedDummies],dummyFloat,dummyFloat[],dummyPrice,dummyPrice[],order[id],order[name],order[description],order[relatedDummy.name],order[relatedDummy.symfony],order[dummyDate],dummyFloat[between],dummyFloat[gt],dummyFloat[gte],dummyFloat[lt],dummyFloat[lte],dummyPrice[between],dummyPrice[gt],dummyPrice[gte],dummyPrice[lt],dummyPrice[lte],id,id[],name,alias,description,relatedDummy.name,relatedDummy.name[],relatedDummies,relatedDummies[],dummy,relatedDummies.name,relatedDummy.thirdLevel.level,relatedDummy.thirdLevel.level[],relatedDummy.thirdLevel.fourthLevel.level,relatedDummy.thirdLevel.fourthLevel.level[],relatedDummy.thirdLevel.badFourthLevel.level,relatedDummy.thirdLevel.badFourthLevel.level[],relatedDummy.thirdLevel.fourthLevel.badThirdLevel.level,relatedDummy.thirdLevel.fourthLevel.badThirdLevel.level[],name_converted,properties[]}",
         "hydra:variableRepresentation": "BasicRepresentation",
         "hydra:mapping": [
           {
@@ -234,6 +235,12 @@ Feature: Create-Retrieve-Update-Delete
             "@type": "IriTemplateMapping",
             "variable": "exists[relatedDummy]",
             "property": "relatedDummy",
+            "required": false
+          },
+          {
+            "@type": "IriTemplateMapping",
+            "variable": "exists[relatedDummies]",
+            "property": "relatedDummies",
             "required": false
           },
           {
@@ -551,3 +558,221 @@ Feature: Create-Retrieve-Update-Delete
     When I send a "DELETE" request to "/dummies/1"
     Then the response status code should be 204
     And the response should be empty
+
+  @php8
+  @createSchema
+  Scenario: Create a resource ProcessorEntity
+    When I add "Content-Type" header equal to "application/ld+json"
+    And I send a "POST" request to "/processor_entities" with body:
+    """
+    {
+      "foo": "bar"
+    }
+    """
+    Then the response status code should be 201
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Location" should be equal to "/processor_entities/1"
+    And the header "Location" should be equal to "/processor_entities/1"
+    And the JSON should be equal to:
+    """
+    {
+      "@context": "/contexts/ProcessorEntity",
+      "@id": "/processor_entities/1",
+      "@type": "ProcessorEntity",
+      "id": 1,
+      "foo": "bar"
+    }
+    """
+
+  @php8
+  Scenario: Create a resource ProviderEntity
+    When I add "Content-Type" header equal to "application/ld+json"
+    And I send a "POST" request to "/provider_entities" with body:
+    """
+    {
+      "foo": "bar"
+    }
+    """
+    Then the response status code should be 201
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the header "Content-Location" should be equal to "/provider_entities/1"
+    And the header "Location" should be equal to "/provider_entities/1"
+    And the JSON should be equal to:
+    """
+    {
+      "@context": "/contexts/ProviderEntity",
+      "@id": "/provider_entities/1",
+      "@type": "ProviderEntity",
+      "id": 1,
+      "foo": "bar"
+    }
+    """
+
+  @php8
+  Scenario: Get a collection of Provider Entities
+    When I send a "GET" request to "/provider_entities"
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be equal to:
+    """
+      {
+          "@context": "/contexts/ProviderEntity",
+          "@id": "/provider_entities",
+          "@type": "hydra:Collection",
+          "hydra:member": [
+              {
+                  "@id": "/provider_entities/1",
+                  "@type": "ProviderEntity",
+                  "id": 1,
+                  "foo": "bar"
+              }
+          ],
+          "hydra:totalItems": 1
+      }
+    """
+
+  @php8
+  Scenario: Get a resource ProviderEntity
+    When I send a "GET" request to "/provider_entities/1"
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be equal to:
+    """
+      {
+          "@context": "/contexts/ProviderEntity",
+          "@id": "/provider_entities/1",
+          "@type": "ProviderEntity",
+          "id": 1,
+          "foo": "bar"
+      }
+    """
+
+  @v3
+  Scenario: Get a resource in v3 configured in YAML
+    Given there is a Program
+    When I send a "GET" request to "/programs/1"
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be equal to:
+    """
+    {
+      "@context": "/contexts/Program",
+      "@id": "/programs/1",
+      "@type": "Program",
+      "id": 1,
+      "name": "Lorem ipsum 1",
+      "date": "2015-03-01T10:00:00+00:00",
+      "author": "/users/1"
+    }
+    """
+
+  @v3
+  Scenario: Get a collection resource in v3 configured in YAML
+    Given there are 3 Programs
+    When I send a "GET" request to "/users/1/programs"
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be equal to:
+    """
+    {
+      "@context": "/contexts/Program",
+      "@id": "/users/1/programs",
+      "@type": "hydra:Collection",
+      "hydra:member": [
+        {
+          "@id": "/programs/1",
+          "@type": "Program",
+          "id": 1,
+          "name": "Lorem ipsum 1",
+          "date": "2015-03-01T10:00:00+00:00",
+          "author": "/users/1"
+        },
+        {
+          "@id": "/programs/2",
+          "@type": "Program",
+          "id": 2,
+          "name": "Lorem ipsum 2",
+          "date": "2015-03-02T10:00:00+00:00",
+          "author": "/users/1"
+        },
+        {
+          "@id": "/programs/3",
+          "@type": "Program",
+          "id": 3,
+          "name": "Lorem ipsum 3",
+          "date": "2015-03-03T10:00:00+00:00",
+          "author": "/users/1"
+        }
+      ],
+      "hydra:totalItems": 3
+    }
+    """
+
+  @v3
+  Scenario: Get a resource in v3 configured in XML
+    Given there is a Comment
+    When I send a "GET" request to "/comments/1"
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be equal to:
+    """
+    {
+      "@context": "/contexts/Comment",
+      "@id": "/comments/1",
+      "@type": "Comment",
+      "id": 1,
+      "comment": "Lorem ipsum dolor sit amet 1",
+      "date": "2015-03-01T10:00:00+00:00",
+      "author": "/users/1"
+    }
+    """
+
+  @v3
+  Scenario: Get a collection resource in v3 configured in XML
+    Given there are 3 Comments
+    When I send a "GET" request to "/users/1/comments"
+    Then the response status code should be 200
+    And the response should be in JSON
+    And the header "Content-Type" should be equal to "application/ld+json; charset=utf-8"
+    And the JSON should be equal to:
+    """
+    {
+      "@context": "/contexts/Comment",
+      "@id": "/users/1/comments",
+      "@type": "hydra:Collection",
+      "hydra:member": [
+        {
+          "@id": "/comments/1",
+          "@type": "Comment",
+          "id": 1,
+          "comment": "Lorem ipsum dolor sit amet 1",
+          "date": "2015-03-01T10:00:00+00:00",
+          "author": "/users/1"
+        },
+        {
+          "@id": "/comments/2",
+          "@type": "Comment",
+          "id": 2,
+          "comment": "Lorem ipsum dolor sit amet 2",
+          "date": "2015-03-02T10:00:00+00:00",
+          "author": "/users/1"
+        },
+        {
+          "@id": "/comments/3",
+          "@type": "Comment",
+          "id": 3,
+          "comment": "Lorem ipsum dolor sit amet 3",
+          "date": "2015-03-03T10:00:00+00:00",
+          "author": "/users/1"
+        }
+      ],
+      "hydra:totalItems": 3
+    }
+    """

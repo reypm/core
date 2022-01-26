@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -34,7 +34,7 @@ abstract class VoDummyVehicle
     private $make;
 
     /**
-     * @var VoDummyInsuranceCompany
+     * @var VoDummyInsuranceCompany|null
      *
      * @ORM\ManyToOne(targetEntity="VoDummyInsuranceCompany", cascade={"persist"})
      * @Groups({"car_read", "car_write"})

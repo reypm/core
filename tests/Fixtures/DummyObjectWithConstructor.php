@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures;
+namespace ApiPlatform\Tests\Fixtures;
 
 /**
  * @author Maxime Veber <maxime.veber@nekland.fr>
  */
 class DummyObjectWithConstructor
 {
-    private $foo;
-    private $bar;
+    private $foo; // @phpstan-ignore-line
+    private $bar; // @phpstan-ignore-line
 
     public function __construct(string $foo, \stdClass $bar)
     {

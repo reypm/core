@@ -11,17 +11,17 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Util;
+namespace ApiPlatform\Tests\Util;
 
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\BooleanFilter;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\DateFilter;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
-use ApiPlatform\Core\Serializer\Filter\GroupFilter;
-use ApiPlatform\Core\Serializer\Filter\PropertyFilter;
-use ApiPlatform\Core\Tests\Fixtures\DummyEntityFilterAnnotated;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\DummyCar;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Util\AnnotationFilterExtractor;
+use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
+use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Serializer\Filter\GroupFilter;
+use ApiPlatform\Serializer\Filter\PropertyFilter;
+use ApiPlatform\Tests\Fixtures\DummyEntityFilterAnnotated;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\DummyCar;
+use ApiPlatform\Tests\Fixtures\TestBundle\Util\AnnotationFilterExtractor;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class AnnotationFilterExtractorTraitTest extends KernelTestCase
@@ -31,35 +31,34 @@ class AnnotationFilterExtractorTraitTest extends KernelTestCase
     protected function setUp(): void
     {
         self::bootKernel();
-        $this->extractor = new AnnotationFilterExtractor(self::$kernel->getContainer()->get('test.annotation_reader'));
+        $this->extractor = new AnnotationFilterExtractor(static::$kernel->getContainer()->get('test.annotation_reader'));
     }
 
     public function testReadAnnotations()
     {
         $reflectionClass = new \ReflectionClass(DummyCar::class);
-
         $this->assertEquals($this->extractor->getFilters($reflectionClass), [
-            'annotated_api_platform_core_tests_fixtures_test_bundle_entity_dummy_car_api_platform_core_bridge_doctrine_orm_filter_date_filter' => [
-                ['properties' => ['id' => 'exclude_null', 'colors' => 'exclude_null', 'name' => 'exclude_null', 'canSell' => 'exclude_null', 'availableAt' => 'exclude_null', 'secondColors' => 'exclude_null', 'thirdColors' => 'exclude_null', 'uuid' => 'exclude_null']],
+            'annotated_api_platform_tests_fixtures_test_bundle_entity_dummy_car_api_platform_doctrine_orm_filter_date_filter' => [
+                ['properties' => ['id' => 'exclude_null', 'colors' => 'exclude_null', 'name' => 'exclude_null', 'canSell' => 'exclude_null', 'availableAt' => 'exclude_null', 'brand' => 'exclude_null', 'secondColors' => 'exclude_null', 'thirdColors' => 'exclude_null', 'uuid' => 'exclude_null']],
                 DateFilter::class,
             ],
-            'annotated_api_platform_core_tests_fixtures_test_bundle_entity_dummy_car_api_platform_core_bridge_doctrine_orm_filter_boolean_filter' => [
+            'annotated_api_platform_tests_fixtures_test_bundle_entity_dummy_car_api_platform_doctrine_orm_filter_boolean_filter' => [
                 [],
                 BooleanFilter::class,
             ],
-            'annotated_api_platform_core_tests_fixtures_test_bundle_entity_dummy_car_api_platform_core_bridge_doctrine_orm_filter_search_filter' => [
+            'annotated_api_platform_tests_fixtures_test_bundle_entity_dummy_car_api_platform_doctrine_orm_filter_search_filter' => [
                 ['properties' => ['name' => 'partial', 'colors.prop' => 'ipartial', 'colors' => 'exact', 'secondColors' => 'exact', 'thirdColors' => 'exact', 'uuid' => 'exact']],
                 SearchFilter::class,
             ],
-            'annotated_api_platform_core_tests_fixtures_test_bundle_entity_dummy_car_api_platform_core_serializer_filter_property_filter' => [
+            'annotated_api_platform_tests_fixtures_test_bundle_entity_dummy_car_api_platform_serializer_filter_property_filter' => [
                 ['parameterName' => 'foobar'],
                 PropertyFilter::class,
             ],
-            'annotated_api_platform_core_tests_fixtures_test_bundle_entity_dummy_car_api_platform_core_serializer_filter_group_filter' => [
+            'annotated_api_platform_tests_fixtures_test_bundle_entity_dummy_car_api_platform_serializer_filter_group_filter' => [
                 ['parameterName' => 'foobargroups'],
                 GroupFilter::class,
             ],
-            'annotated_api_platform_core_tests_fixtures_test_bundle_entity_dummy_car_api_platform_core_serializer_filter_group_filter_override' => [
+            'annotated_api_platform_tests_fixtures_test_bundle_entity_dummy_car_api_platform_serializer_filter_group_filter_override' => [
                 ['parameterName' => 'foobargroups_override'],
                 GroupFilter::class,
             ],
@@ -71,7 +70,7 @@ class AnnotationFilterExtractorTraitTest extends KernelTestCase
         $reflectionClass = new \ReflectionClass(DummyEntityFilterAnnotated::class);
 
         $this->assertEquals($this->extractor->getFilters($reflectionClass), [
-            'annotated_api_platform_core_tests_fixtures_dummy_entity_filter_annotated_api_platform_core_bridge_doctrine_orm_filter_order_filter' => [
+            'annotated_api_platform_tests_fixtures_dummy_entity_filter_annotated_api_platform_doctrine_orm_filter_order_filter' => [
                 [
                     'orderParameterName' => 'positionOrder',
                     'properties' => [

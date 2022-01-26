@@ -11,19 +11,20 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Serializer;
+namespace ApiPlatform\Tests\Serializer;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
-use ApiPlatform\Core\DataTransformer\DataTransformerInterface;
-use ApiPlatform\Core\Exception\InvalidArgumentException;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
-use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
 use ApiPlatform\Core\Metadata\Property\PropertyNameCollection;
-use ApiPlatform\Core\Serializer\ItemNormalizer;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Dto\OutputDto;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Dummy;
+use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\DataTransformer\DataTransformerInterface;
+use ApiPlatform\Exception\InvalidArgumentException;
+use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Serializer\ItemNormalizer;
+use ApiPlatform\Tests\Fixtures\TestBundle\Dto\OutputDto;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Dummy;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
@@ -33,9 +34,12 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * @author Kévin Dunglas <dunglas@gmail.com>
+ * @group legacy
  */
 class ItemNormalizerTest extends TestCase
 {
+    use ProphecyTrait;
+
     /**
      * @group legacy
      */
@@ -79,7 +83,7 @@ class ItemNormalizerTest extends TestCase
         $propertyNameCollectionFactoryProphecy = $this->prophesize(PropertyNameCollectionFactoryInterface::class);
         $propertyNameCollectionFactoryProphecy->create(Dummy::class, [])->willReturn($propertyNameCollection);
 
-        $propertyMetadata = new PropertyMetadata(null, null, true);
+        $propertyMetadata = (new ApiProperty())->withReadable(true);
         $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
         $propertyMetadataFactoryProphecy->create(Dummy::class, 'name', [])->willReturn($propertyMetadata);
 
@@ -120,7 +124,7 @@ class ItemNormalizerTest extends TestCase
         $propertyNameCollectionFactoryProphecy = $this->prophesize(PropertyNameCollectionFactoryInterface::class);
         $propertyNameCollectionFactoryProphecy->create(Dummy::class, [])->willReturn($propertyNameCollection)->shouldBeCalled();
 
-        $propertyMetadata = new PropertyMetadata(null, null, true, true);
+        $propertyMetadata = (new ApiProperty())->withReadable(true)->withWritable(true);
         $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
         $propertyMetadataFactoryProphecy->create(Dummy::class, 'name', [])->willReturn($propertyMetadata)->shouldBeCalled();
 
@@ -159,8 +163,9 @@ class ItemNormalizerTest extends TestCase
         $propertyNameCollectionFactoryProphecy = $this->prophesize(PropertyNameCollectionFactoryInterface::class);
         $propertyNameCollectionFactoryProphecy->create(Dummy::class, [])->willReturn($propertyNameCollection)->shouldBeCalled();
 
-        $propertyMetadata = new PropertyMetadata(null, null, true, true);
+        $propertyMetadata = (new ApiProperty())->withReadable(true)->withWritable(true);
         $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
+        $propertyMetadataFactoryProphecy->create(Dummy::class, 'id', [])->willReturn($propertyMetadata)->shouldBeCalled();
         $propertyMetadataFactoryProphecy->create(Dummy::class, 'name', [])->willReturn($propertyMetadata)->shouldBeCalled();
 
         $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
@@ -235,7 +240,7 @@ class ItemNormalizerTest extends TestCase
         $propertyNameCollectionFactoryProphecy = $this->prophesize(PropertyNameCollectionFactoryInterface::class);
         $propertyNameCollectionFactoryProphecy->create(Dummy::class, [])->willReturn($propertyNameCollection)->shouldBeCalled();
 
-        $propertyMetadata = new PropertyMetadata(null, null, true, true);
+        $propertyMetadata = (new ApiProperty())->withReadable(true)->withWritable(true);
         $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
         $propertyMetadataFactoryProphecy->create(Dummy::class, 'id', [])->willReturn($propertyMetadata)->shouldBeCalled();
         $propertyMetadataFactoryProphecy->create(Dummy::class, 'name', [])->willReturn($propertyMetadata)->shouldBeCalled();
@@ -278,7 +283,7 @@ class ItemNormalizerTest extends TestCase
 
         $propertyNameCollection = new PropertyNameCollection(['baz']);
         $propertyNameCollectionFactoryProphecy = $this->prophesize(PropertyNameCollectionFactoryInterface::class);
-        $propertyMetadata = new PropertyMetadata(null, null, true);
+        $propertyMetadata = new ApiProperty(null, null, true);
         $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
         $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
 

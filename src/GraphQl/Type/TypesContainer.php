@@ -11,14 +11,12 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\GraphQl\Type;
+namespace ApiPlatform\GraphQl\Type;
 
 use GraphQL\Type\Definition\Type as GraphQLType;
 
 /**
  * Container having the built GraphQL types.
- *
- * @experimental
  *
  * @author Alan Poulain <contact@alanpoulain.eu>
  */
@@ -43,10 +41,7 @@ final class TypesContainer implements TypesContainerInterface
             return $this->graphqlTypes[$id];
         }
 
-        throw new TypeNotFoundException(
-            sprintf('Type with id "%s" is not present in the types container', $id),
-            $id
-        );
+        throw new TypeNotFoundException(sprintf('Type with id "%s" is not present in the types container', $id), $id);
     }
 
     /**

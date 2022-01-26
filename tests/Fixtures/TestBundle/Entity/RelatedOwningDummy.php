@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use ApiPlatform\Core\Annotation\ApiSubresource;
@@ -35,14 +35,14 @@ class RelatedOwningDummy
     private $id;
 
     /**
-     * @var string A name
+     * @var string|null A name
      *
      * @ORM\Column(nullable=true)
      */
     public $name;
 
     /**
-     * @var Dummy
+     * @var Dummy|null
      *
      * @ORM\OneToOne(targetEntity="Dummy", cascade={"persist"}, mappedBy="relatedOwningDummy")
      * @ApiSubresource
@@ -71,10 +71,8 @@ class RelatedOwningDummy
 
     /**
      * Get owned dummy.
-     *
-     * @return Dummy
      */
-    public function getOwnedDummy()
+    public function getOwnedDummy(): Dummy
     {
         return $this->ownedDummy;
     }

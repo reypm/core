@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Util;
+namespace ApiPlatform\Util;
 
 /**
  * Gets reflection classes for php files in the given directories.
@@ -45,7 +45,12 @@ final class ReflectionClassRecursiveIterator
                     $sourceFile = realpath($sourceFile);
                 }
 
-                require_once $sourceFile;
+                try {
+                    require_once $sourceFile;
+                } catch (\Throwable $t) {
+                    // invalid PHP file (example: missing parent class)
+                    continue;
+                }
 
                 $includedFiles[$sourceFile] = true;
             }

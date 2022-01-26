@@ -11,10 +11,9 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Doctrine\Generator\Uuid;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -26,12 +25,12 @@ use Doctrine\ORM\Mapping as ORM;
 class CustomGeneratedIdentifier
 {
     /**
-     * @var Uuid
+     * @var mixed
      *
      * @ORM\Id
      * @ORM\Column(type="string")
      * @ORM\GeneratedValue(strategy="CUSTOM")
-     * @ORM\CustomIdGenerator(class="ApiPlatform\Core\Tests\Fixtures\TestBundle\Doctrine\Generator\UuidGenerator")
+     * @ORM\CustomIdGenerator(class="ApiPlatform\Tests\Fixtures\TestBundle\Doctrine\Generator\UuidGenerator")
      */
     private $id;
 

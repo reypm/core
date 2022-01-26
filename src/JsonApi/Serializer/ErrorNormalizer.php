@@ -11,15 +11,16 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\JsonApi\Serializer;
+namespace ApiPlatform\JsonApi\Serializer;
 
 use ApiPlatform\Core\Problem\Serializer\ErrorNormalizerTrait;
-use Symfony\Component\Debug\Exception\FlattenException;
+use Symfony\Component\Debug\Exception\FlattenException as LegacyFlattenException;
+use Symfony\Component\ErrorHandler\Exception\FlattenException;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 /**
- * Converts {@see \Exception} or {@see \Symfony\Component\Debug\Exception\FlattenException} to a JSON API error representation.
+ * Converts {@see \Exception} or {@see FlattenException} or {@see LegacyFlattenException}  to a JSON API error representation.
  *
  * @author Héctor Hurtarte <hectorh30@gmail.com>
  */
@@ -41,12 +42,22 @@ final class ErrorNormalizer implements NormalizerInterface, CacheableSupportsMet
         $this->defaultContext = array_merge($this->defaultContext, $defaultContext);
     }
 
+    /**
+     * @param mixed      $object
+     * @param mixed|null $format
+     *
+     * @return array
+     */
     public function normalize($object, $format = null, array $context = [])
     {
         $data = [
             'title' => $context[self::TITLE] ?? $this->defaultContext[self::TITLE],
             'description' => $this->getErrorMessage($object, $context, $this->debug),
         ];
+
+        if (null !== $errorCode = $this->getErrorCode($object)) {
+            $data['code'] = $errorCode;
+        }
 
         if ($this->debug && null !== $trace = $object->getTrace()) {
             $data['trace'] = $trace;
@@ -58,9 +69,9 @@ final class ErrorNormalizer implements NormalizerInterface, CacheableSupportsMet
     /**
      * {@inheritdoc}
      */
-    public function supportsNormalization($data, $format = null)
+    public function supportsNormalization($data, $format = null): bool
     {
-        return self::FORMAT === $format && ($data instanceof \Exception || $data instanceof FlattenException);
+        return self::FORMAT === $format && ($data instanceof \Exception || $data instanceof FlattenException || $data instanceof LegacyFlattenException);
     }
 
     /**

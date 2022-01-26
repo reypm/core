@@ -2,111 +2,78 @@ default:
   suites:
     default:
       contexts:
-        - 'CommandContext'
-        - 'DoctrineContext':
-            doctrine: '@doctrine'
-            passwordEncoder: '@security.password_encoder'
-        - 'HttpHeaderContext'
-        - 'GraphqlContext'
-        - 'JsonContext'
-        - 'HydraContext'
-        - 'SwaggerContext'
-        - 'HttpCacheContext'
-        - 'JsonApiContext':
-            doctrine: '@doctrine'
-            jsonApiSchemaFile: '%paths.base%/tests/Fixtures/JsonSchema/jsonapi.json'
-        - 'JsonHalContext':
-            schemaFile: '%paths.base%/tests/Fixtures/JsonHal/jsonhal.json'
+        - 'ApiPlatform\Core\Tests\Behat\CommandContext'
+        - 'ApiPlatform\Core\Tests\Behat\DoctrineContext'
+        - 'ApiPlatform\Core\Tests\Behat\GraphqlContext'
+        - 'ApiPlatform\Core\Tests\Behat\JsonContext'
+        - 'ApiPlatform\Core\Tests\Behat\HydraContext'
+        - 'ApiPlatform\Core\Tests\Behat\OpenApiContext'
+        - 'ApiPlatform\Core\Tests\Behat\HttpCacheContext'
+        - 'ApiPlatform\Core\Tests\Behat\JsonApiContext'
+        - 'ApiPlatform\Core\Tests\Behat\JsonHalContext'
+        - 'ApiPlatform\Core\Tests\Behat\MercureContext'
+        - 'ApiPlatform\Core\Tests\Behat\XmlContext'
         - 'Behat\MinkExtension\Context\MinkContext'
-        - 'Behatch\Context\RestContext'
+        - 'behatch:context:rest'
       filters:
         tags: '~@postgres&&~@mongodb&&~@elasticsearch'
   extensions:
-    'Behat\Symfony2Extension':
+    'FriendsOfBehat\SymfonyExtension':
+      bootstrap: 'tests/Fixtures/app/bootstrap.php'
       kernel:
-        env: 'test'
-        debug: 'true'
+        environment: 'test'
+        debug: true
+        class: AppKernel
         path: 'tests/Fixtures/app/AppKernel.php'
-        bootstrap: 'tests/Fixtures/app/bootstrap.php'
     'Behat\MinkExtension':
       base_url: 'http://example.com/'
       files_path: 'features/files'
       sessions:
         default:
-          symfony2: ~
+          symfony: ~
     'Behatch\Extension': ~
-
-default-no-legacy:
-  suites:
-    default:
-      filters:
-        tags: '~@postgres&&~@mongodb&&~@elasticsearch&&~@legacy'
 
 postgres:
   suites:
     default: false
     postgres: &postgres-suite
       contexts:
-        - 'CommandContext'
-        - 'DoctrineContext':
-            doctrine: '@doctrine'
-            passwordEncoder: '@security.password_encoder'
-        - 'HttpHeaderContext'
-        - 'GraphqlContext'
-        - 'JsonContext'
-        - 'HydraContext'
-        - 'SwaggerContext'
-        - 'HttpCacheContext'
-        - 'JsonApiContext':
-            doctrine: '@doctrine'
-            jsonApiSchemaFile: '%paths.base%/tests/Fixtures/JsonSchema/jsonapi.json'
-        - 'JsonHalContext':
-            schemaFile: '%paths.base%/tests/Fixtures/JsonHal/jsonhal.json'
+        - 'ApiPlatform\Core\Tests\Behat\CommandContext'
+        - 'ApiPlatform\Core\Tests\Behat\DoctrineContext'
+        - 'ApiPlatform\Core\Tests\Behat\GraphqlContext'
+        - 'ApiPlatform\Core\Tests\Behat\JsonContext'
+        - 'ApiPlatform\Core\Tests\Behat\HydraContext'
+        - 'ApiPlatform\Core\Tests\Behat\OpenApiContext'
+        - 'ApiPlatform\Core\Tests\Behat\HttpCacheContext'
+        - 'ApiPlatform\Core\Tests\Behat\JsonApiContext'
+        - 'ApiPlatform\Core\Tests\Behat\JsonHalContext'
+        - 'ApiPlatform\Core\Tests\Behat\MercureContext'
+        - 'ApiPlatform\Core\Tests\Behat\XmlContext'
         - 'Behat\MinkExtension\Context\MinkContext'
-        - 'Behatch\Context\RestContext'
+        - 'behatch:context:rest'
       filters:
         tags: '~@sqlite&&~@mongodb&&~@elasticsearch'
-
-postgres-no-legacy:
-  suites:
-    default: false
-    postgres:
-      <<: *postgres-suite
-      filters:
-        tags: '~@sqlite&&~@mongodb&&~@elasticsearch&&~@legacy'
 
 mongodb:
   suites:
     default: false
     mongodb: &mongodb-suite
       contexts:
-        - 'CommandContext'
-        - 'DoctrineContext':
-            doctrine: '@doctrine_mongodb'
-            passwordEncoder: '@security.password_encoder'
-        - 'HttpHeaderContext'
-        - 'GraphqlContext'
-        - 'JsonContext'
-        - 'HydraContext'
-        - 'SwaggerContext'
-        - 'HttpCacheContext'
-        - 'JsonApiContext':
-            doctrine: '@doctrine_mongodb'
-            jsonApiSchemaFile: '%paths.base%/tests/Fixtures/JsonSchema/jsonapi.json'
-        - 'JsonHalContext':
-            schemaFile: '%paths.base%/tests/Fixtures/JsonHal/jsonhal.json'
+        - 'ApiPlatform\Core\Tests\Behat\CommandContext'
+        - 'ApiPlatform\Core\Tests\Behat\DoctrineContext'
+        - 'ApiPlatform\Core\Tests\Behat\GraphqlContext'
+        - 'ApiPlatform\Core\Tests\Behat\JsonContext'
+        - 'ApiPlatform\Core\Tests\Behat\HydraContext'
+        - 'ApiPlatform\Core\Tests\Behat\OpenApiContext'
+        - 'ApiPlatform\Core\Tests\Behat\HttpCacheContext'
+        - 'ApiPlatform\Core\Tests\Behat\JsonApiContext'
+        - 'ApiPlatform\Core\Tests\Behat\JsonHalContext'
+        - 'ApiPlatform\Core\Tests\Behat\MercureContext'
+        - 'ApiPlatform\Core\Tests\Behat\XmlContext'
         - 'Behat\MinkExtension\Context\MinkContext'
-        - 'Behatch\Context\RestContext'
+        - 'behatch:context:rest'
       filters:
         tags: '~@sqlite&&~@elasticsearch&&~@!mongodb'
-
-mongodb-no-legacy:
-  suites:
-    default: false
-    mongodb:
-      <<: *mongodb-suite
-      filters:
-        tags: '~@sqlite&&~@elasticsearch&&~@!mongodb&&~@legacy'
 
 elasticsearch:
   suites:
@@ -115,87 +82,63 @@ elasticsearch:
       paths:
         - '%paths.base%/features/elasticsearch'
       contexts:
-        - 'CommandContext'
-        - 'ElasticsearchContext':
-            client: '@test.api_platform.elasticsearch.client'
-            elasticsearchMappingsPath: '%paths.base%/tests/Fixtures/Elasticsearch/Mappings/'
-            elasticsearchFixturesPath: '%paths.base%/tests/Fixtures/Elasticsearch/Fixtures/'
-        - 'HttpHeaderContext'
-        - 'JsonContext'
-        - 'Behatch\Context\RestContext'
+        - 'ApiPlatform\Core\Tests\Behat\CommandContext'
+        - 'ApiPlatform\Core\Tests\Behat\ElasticsearchContext'
+        - 'ApiPlatform\Core\Tests\Behat\JsonContext'
         - 'Behat\MinkExtension\Context\MinkContext'
+        - 'behatch:context:rest'
       filters:
         tags: '@elasticsearch'
 
-elasticsearch-no-legacy:
-  suites:
-    default: false
-    elasticsearch:
-      <<: *elasticsearch-suite
-      filters:
-        tags: '@elasticsearch&&~@legacy'
-
 default-coverage:
   suites:
-    default:
+    default: &default-coverage-suite
       contexts:
-        - 'CommandContext'
-        - 'DoctrineContext':
-            doctrine: '@doctrine'
-            passwordEncoder: '@security.password_encoder'
-        - 'HttpHeaderContext'
-        - 'GraphqlContext'
-        - 'JsonContext'
-        - 'HydraContext'
-        - 'SwaggerContext'
-        - 'HttpCacheContext'
-        - 'JsonApiContext':
-            doctrine: '@doctrine'
-            jsonApiSchemaFile: '%paths.base%/tests/Fixtures/JsonSchema/jsonapi.json'
-        - 'JsonHalContext':
-            schemaFile: '%paths.base%/tests/Fixtures/JsonHal/jsonhal.json'
-        - 'CoverageContext'
+        - 'ApiPlatform\Core\Tests\Behat\CommandContext'
+        - 'ApiPlatform\Core\Tests\Behat\DoctrineContext'
+        - 'ApiPlatform\Core\Tests\Behat\GraphqlContext'
+        - 'ApiPlatform\Core\Tests\Behat\JsonContext'
+        - 'ApiPlatform\Core\Tests\Behat\HydraContext'
+        - 'ApiPlatform\Core\Tests\Behat\OpenApiContext'
+        - 'ApiPlatform\Core\Tests\Behat\HttpCacheContext'
+        - 'ApiPlatform\Core\Tests\Behat\JsonApiContext'
+        - 'ApiPlatform\Core\Tests\Behat\JsonHalContext'
+        - 'ApiPlatform\Core\Tests\Behat\MercureContext'
+        - 'ApiPlatform\Core\Tests\Behat\CoverageContext'
+        - 'ApiPlatform\Core\Tests\Behat\XmlContext'
         - 'Behat\MinkExtension\Context\MinkContext'
-        - 'Behatch\Context\RestContext'
+        - 'behatch:context:rest'
 
 mongodb-coverage:
   suites:
     default: false
-    mongodb:
+    mongodb: &mongodb-coverage-suite
       <<: *mongodb-suite
       contexts:
-        - 'CommandContext'
-        - 'DoctrineContext':
-            doctrine: '@doctrine_mongodb'
-            passwordEncoder: '@security.password_encoder'
-        - 'HttpHeaderContext'
-        - 'GraphqlContext'
-        - 'JsonContext'
-        - 'HydraContext'
-        - 'SwaggerContext'
-        - 'HttpCacheContext'
-        - 'JsonApiContext':
-            doctrine: '@doctrine_mongodb'
-            jsonApiSchemaFile: '%paths.base%/tests/Fixtures/JsonSchema/jsonapi.json'
-        - 'JsonHalContext':
-            schemaFile: '%paths.base%/tests/Fixtures/JsonHal/jsonhal.json'
-        - 'CoverageContext'
+        - 'ApiPlatform\Core\Tests\Behat\CommandContext'
+        - 'ApiPlatform\Core\Tests\Behat\DoctrineContext'
+        - 'ApiPlatform\Core\Tests\Behat\GraphqlContext'
+        - 'ApiPlatform\Core\Tests\Behat\JsonContext'
+        - 'ApiPlatform\Core\Tests\Behat\HydraContext'
+        - 'ApiPlatform\Core\Tests\Behat\OpenApiContext'
+        - 'ApiPlatform\Core\Tests\Behat\HttpCacheContext'
+        - 'ApiPlatform\Core\Tests\Behat\JsonApiContext'
+        - 'ApiPlatform\Core\Tests\Behat\JsonHalContext'
+        - 'ApiPlatform\Core\Tests\Behat\MercureContext'
+        - 'ApiPlatform\Core\Tests\Behat\CoverageContext'
+        - 'ApiPlatform\Core\Tests\Behat\XmlContext'
         - 'Behat\MinkExtension\Context\MinkContext'
-        - 'Behatch\Context\RestContext'
+        - 'behatch:context:rest'
 
 elasticsearch-coverage:
   suites:
     default: false
-    elasticsearch:
+    elasticsearch: &elasticsearch-coverage-suite
       <<: *elasticsearch-suite
       contexts:
-        - 'CommandContext'
-        - 'ElasticsearchContext':
-            client: '@test.api_platform.elasticsearch.client'
-            elasticsearchMappingsPath: '%paths.base%/tests/Fixtures/Elasticsearch/Mappings/'
-            elasticsearchFixturesPath: '%paths.base%/tests/Fixtures/Elasticsearch/Fixtures/'
-        - 'HttpHeaderContext'
-        - 'JsonContext'
-        - 'CoverageContext'
-        - 'Behatch\Context\RestContext'
+        - 'ApiPlatform\Core\Tests\Behat\CommandContext'
+        - 'ApiPlatform\Core\Tests\Behat\ElasticsearchContext'
+        - 'ApiPlatform\Core\Tests\Behat\JsonContext'
+        - 'ApiPlatform\Core\Tests\Behat\CoverageContext'
         - 'Behat\MinkExtension\Context\MinkContext'
+        - 'behatch:context:rest'

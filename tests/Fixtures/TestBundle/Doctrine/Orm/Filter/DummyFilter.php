@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Doctrine\Orm\Filter;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Doctrine\Orm\Filter;
 
-use ApiPlatform\Core\Bridge\Doctrine\Common\PropertyHelperTrait;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\AbstractFilter;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Util\QueryNameGeneratorInterface;
+use ApiPlatform\Doctrine\Common\PropertyHelperTrait;
+use ApiPlatform\Doctrine\Orm\Filter\AbstractFilter;
+use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use Doctrine\ORM\QueryBuilder;
 
 class DummyFilter extends AbstractFilter

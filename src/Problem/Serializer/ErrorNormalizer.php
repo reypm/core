@@ -11,9 +11,10 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Problem\Serializer;
+namespace ApiPlatform\Problem\Serializer;
 
-use Symfony\Component\Debug\Exception\FlattenException;
+use Symfony\Component\Debug\Exception\FlattenException as LegacyFlattenException;
+use Symfony\Component\ErrorHandler\Exception\FlattenException;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
@@ -26,11 +27,10 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 final class ErrorNormalizer implements NormalizerInterface, CacheableSupportsMethodInterface
 {
+    use ErrorNormalizerTrait;
     public const FORMAT = 'jsonproblem';
     public const TYPE = 'type';
     public const TITLE = 'title';
-
-    use ErrorNormalizerTrait;
 
     private $debug;
     private $defaultContext = [
@@ -47,7 +47,7 @@ final class ErrorNormalizer implements NormalizerInterface, CacheableSupportsMet
     /**
      * {@inheritdoc}
      */
-    public function normalize($object, $format = null, array $context = [])
+    public function normalize($object, $format = null, array $context = []): array
     {
         $data = [
             'type' => $context[self::TYPE] ?? $this->defaultContext[self::TYPE],
@@ -65,9 +65,9 @@ final class ErrorNormalizer implements NormalizerInterface, CacheableSupportsMet
     /**
      * {@inheritdoc}
      */
-    public function supportsNormalization($data, $format = null)
+    public function supportsNormalization($data, $format = null): bool
     {
-        return self::FORMAT === $format && ($data instanceof \Exception || $data instanceof FlattenException);
+        return self::FORMAT === $format && ($data instanceof \Exception || $data instanceof FlattenException || $data instanceof LegacyFlattenException);
     }
 
     /**

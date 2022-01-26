@@ -11,11 +11,12 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\GraphQl\Serializer;
+namespace ApiPlatform\GraphQl\Serializer;
 
+use ApiPlatform\Api\IriConverterInterface;
 use ApiPlatform\Core\Api\IdentifiersExtractorInterface;
-use ApiPlatform\Core\Api\IriConverterInterface;
-use ApiPlatform\Core\Util\ClassInfoTrait;
+use ApiPlatform\Core\Api\IriConverterInterface as LegacyIriConverterInterface;
+use ApiPlatform\Util\ClassInfoTrait;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\Normalizer\CacheableSupportsMethodInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
@@ -36,10 +37,13 @@ final class ObjectNormalizer implements NormalizerInterface, CacheableSupportsMe
     private $iriConverter;
     private $identifiersExtractor;
 
-    public function __construct(NormalizerInterface $decorated, IriConverterInterface $iriConverter, IdentifiersExtractorInterface $identifiersExtractor)
+    public function __construct(NormalizerInterface $decorated, $iriConverter, IdentifiersExtractorInterface $identifiersExtractor)
     {
         $this->decorated = $decorated;
         $this->iriConverter = $iriConverter;
+        if ($iriConverter instanceof LegacyIriConverterInterface) {
+            trigger_deprecation('api-platform/core', '2.7', sprintf('Use an implementation of "%s" instead of "%s".', IriConverterInterface::class, LegacyIriConverterInterface::class));
+        }
         $this->identifiersExtractor = $identifiersExtractor;
     }
 
@@ -63,6 +67,8 @@ final class ObjectNormalizer implements NormalizerInterface, CacheableSupportsMe
      * {@inheritdoc}
      *
      * @throws UnexpectedValueException
+     *
+     * @return array|string|int|float|bool|\ArrayObject|null
      */
     public function normalize($object, $format = null, array $context = [])
     {
@@ -73,7 +79,7 @@ final class ObjectNormalizer implements NormalizerInterface, CacheableSupportsMe
 
         $data = $this->decorated->normalize($object, $format, $context);
         if (!\is_array($data)) {
-            throw new UnexpectedValueException('Expected data to be an array');
+            throw new UnexpectedValueException('Expected data to be an array.');
         }
 
         if (!isset($originalResource)) {
@@ -85,8 +91,10 @@ final class ObjectNormalizer implements NormalizerInterface, CacheableSupportsMe
             $data['id'] = $this->iriConverter->getIriFromItem($originalResource);
         }
 
-        $data[self::ITEM_RESOURCE_CLASS_KEY] = $this->getObjectClass($originalResource);
-        $data[self::ITEM_IDENTIFIERS_KEY] = $this->identifiersExtractor->getIdentifiersFromItem($originalResource);
+        if (!($context['no_resolver_data'] ?? false)) {
+            $data[self::ITEM_RESOURCE_CLASS_KEY] = $this->getObjectClass($originalResource);
+            $data[self::ITEM_IDENTIFIERS_KEY] = $this->identifiersExtractor->getIdentifiersFromItem($originalResource);
+        }
 
         return $data;
     }

@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures;
+namespace ApiPlatform\Tests\Fixtures;
 
 use ApiPlatform\Core\Annotation\ApiFilter;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 
 /**
  * @ApiFilter(OrderFilter::class, arguments={"orderParameterName"="positionOrder"}, properties={"position"})

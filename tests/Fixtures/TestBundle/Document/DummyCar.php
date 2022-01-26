@@ -11,15 +11,15 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Document;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Document;
 
 use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Core\Bridge\Doctrine\MongoDbOdm\Filter\BooleanFilter;
-use ApiPlatform\Core\Bridge\Doctrine\MongoDbOdm\Filter\DateFilter;
-use ApiPlatform\Core\Bridge\Doctrine\MongoDbOdm\Filter\SearchFilter;
-use ApiPlatform\Core\Serializer\Filter\GroupFilter;
-use ApiPlatform\Core\Serializer\Filter\PropertyFilter;
+use ApiPlatform\Doctrine\Odm\Filter\BooleanFilter;
+use ApiPlatform\Doctrine\Odm\Filter\DateFilter;
+use ApiPlatform\Doctrine\Odm\Filter\SearchFilter;
+use ApiPlatform\Serializer\Filter\GroupFilter;
+use ApiPlatform\Serializer\Filter\PropertyFilter;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 use Symfony\Component\Serializer\Annotation as Serializer;
@@ -29,7 +29,7 @@ use Symfony\Component\Serializer\Annotation as Serializer;
  *     itemOperations={"get"={"swagger_context"={"tags"={}}, "openapi_context"={"tags"={}}}, "put", "delete"},
  *     attributes={
  *         "sunset"="2050-01-01",
- *         "normalization_context"={"groups"="colors"}
+ *         "normalization_context"={"groups"={"colors"}}
  *     }
  * )
  * @ODM\Document
@@ -44,7 +44,7 @@ class DummyCar
     /**
      * @var int The entity Id
      *
-     * @ODM\Id(strategy="INCREMENT", type="integer")
+     * @ODM\Id(strategy="INCREMENT", type="int")
      */
     private $id;
 
@@ -99,7 +99,7 @@ class DummyCar
     /**
      * @var bool
      *
-     * @ODM\Field(type="boolean")
+     * @ODM\Field(type="bool")
      */
     private $canSell;
 
@@ -109,6 +109,16 @@ class DummyCar
      * @ODM\Field(type="date")
      */
     private $availableAt;
+
+    /**
+     * @var string
+     *
+     * @Serializer\Groups({"colors"})
+     * @Serializer\SerializedName("carBrand")
+     *
+     * @ODM\Field
+     */
+    private $brand = 'DummyBrand';
 
     public function __construct()
     {
@@ -190,5 +200,15 @@ class DummyCar
     public function setAvailableAt(\DateTime $availableAt)
     {
         $this->availableAt = $availableAt;
+    }
+
+    public function getBrand(): string
+    {
+        return $this->brand;
+    }
+
+    public function setBrand(string $brand): void
+    {
+        $this->brand = $brand;
     }
 }

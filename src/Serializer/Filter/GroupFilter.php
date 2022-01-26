@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Serializer\Filter;
+namespace ApiPlatform\Serializer\Filter;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
@@ -42,7 +42,7 @@ final class GroupFilter implements FilterInterface
         if (\array_key_exists($this->parameterName, $commonAttribute = $request->attributes->get('_api_filters', []))) {
             $groups = $commonAttribute[$this->parameterName];
         } else {
-            $groups = $request->query->get($this->parameterName);
+            $groups = $request->query->all()[$this->parameterName] ?? null;
         }
 
         if (!\is_array($groups)) {

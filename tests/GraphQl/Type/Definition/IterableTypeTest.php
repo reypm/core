@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace ApiPlatform\Core\Tests\GraphQl\Type\Definition;
 
-use ApiPlatform\Core\GraphQl\Type\Definition\IterableType;
+use ApiPlatform\GraphQl\Type\Definition\IterableType;
 use GraphQL\Error\Error;
 use GraphQL\Language\AST\BooleanValueNode;
 use GraphQL\Language\AST\FloatValueNode;
@@ -43,7 +43,7 @@ class IterableTypeTest extends TestCase
         $iterableType = new IterableType();
 
         $this->expectException(Error::class);
-        $this->expectExceptionMessageRegExp('/`Iterable` cannot represent non iterable value: .+/');
+        $this->expectExceptionMessageMatches('/`Iterable` cannot represent non iterable value: .+/');
 
         $iterableType->serialize('foo');
 
@@ -55,7 +55,7 @@ class IterableTypeTest extends TestCase
         $iterableType = new IterableType();
 
         $this->expectException(Error::class);
-        $this->expectExceptionMessageRegExp('/`Iterable` cannot represent non iterable value: .+/');
+        $this->expectExceptionMessageMatches('/`Iterable` cannot represent non iterable value: .+/');
 
         $iterableType->parseValue('foo');
 

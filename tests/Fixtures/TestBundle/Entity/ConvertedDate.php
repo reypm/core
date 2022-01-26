@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
-use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\DateFilter;
+use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -26,7 +26,7 @@ use Doctrine\ORM\Mapping as ORM;
 class ConvertedDate
 {
     /**
-     * @var int
+     * @var int|null
      *
      * @ORM\Column(type="integer", nullable=true)
      * @ORM\Id

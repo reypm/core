@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -26,7 +26,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class ParentDummy
 {
     /**
-     * @var int The age
+     * @var int|null The age
      *
      * @ORM\Column(type="integer", nullable=true)
      * @Groups({"friends"})

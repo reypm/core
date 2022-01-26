@@ -11,16 +11,12 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\GraphQl\Type\Definition;
-
-use GraphQL\Type\Definition\LeafType;
+namespace ApiPlatform\GraphQl\Type\Definition;
 
 /**
- * @experimental
- *
  * @author Alan Poulain <contact@alanpoulain.eu>
  */
-interface TypeInterface extends LeafType
+interface TypeInterface
 {
     public function getName(): string;
 }

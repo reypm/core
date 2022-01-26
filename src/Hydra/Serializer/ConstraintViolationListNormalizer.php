@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Hydra\Serializer;
+namespace ApiPlatform\Hydra\Serializer;
 
 use ApiPlatform\Core\Api\UrlGeneratorInterface;
-use ApiPlatform\Core\Serializer\AbstractConstraintViolationListNormalizer;
+use ApiPlatform\Serializer\AbstractConstraintViolationListNormalizer;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 
 /**
@@ -37,6 +37,8 @@ final class ConstraintViolationListNormalizer extends AbstractConstraintViolatio
 
     /**
      * {@inheritdoc}
+     *
+     * @return array|string|int|float|bool|\ArrayObject|null
      */
     public function normalize($object, $format = null, array $context = [])
     {

@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Util;
+namespace ApiPlatform\Util;
 
 use Symfony\Component\HttpFoundation\Request;
 
@@ -55,7 +55,7 @@ final class RequestParser
 
         $source = preg_replace_callback(
             '/(^|(?<=&))[^=[&]+/',
-            function ($key) {
+            static function ($key) {
                 return bin2hex(urldecode($key[0]));
             },
             $source

@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
@@ -44,7 +44,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class LegacySecuredDummy
 {
     /**
-     * @var int
+     * @var int|null
      *
      * @ORM\Column(type="integer")
      * @ORM\Id
@@ -75,37 +75,37 @@ class LegacySecuredDummy
      */
     private $owner;
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getTitle(): string
+    public function getTitle(): ?string
     {
         return $this->title;
     }
 
-    public function setTitle(string $title)
+    public function setTitle(string $title): void
     {
         $this->title = $title;
     }
 
-    public function getDescription()
+    public function getDescription(): string
     {
         return $this->description;
     }
 
-    public function setDescription(string $description)
+    public function setDescription(string $description): void
     {
         $this->description = $description;
     }
 
-    public function getOwner(): string
+    public function getOwner(): ?string
     {
         return $this->owner;
     }
 
-    public function setOwner(string $owner)
+    public function setOwner(string $owner): void
     {
         $this->owner = $owner;
     }

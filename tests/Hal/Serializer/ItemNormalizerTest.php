@@ -11,18 +11,19 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Hal\Serializer;
+namespace ApiPlatform\Tests\Hal\Serializer;
 
 use ApiPlatform\Core\Api\IriConverterInterface;
 use ApiPlatform\Core\Api\ResourceClassResolverInterface;
-use ApiPlatform\Core\Hal\Serializer\ItemNormalizer;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use ApiPlatform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
-use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
 use ApiPlatform\Core\Metadata\Property\PropertyNameCollection;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\Dummy;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\MaxDepthDummy;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\RelatedDummy;
+use ApiPlatform\Core\Tests\ProphecyTrait;
+use ApiPlatform\Hal\Serializer\ItemNormalizer;
+use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\Dummy;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\MaxDepthDummy;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\RelatedDummy;
 use Doctrine\Common\Annotations\AnnotationReader;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
@@ -38,9 +39,12 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * @author Kévin Dunglas <dunglas@gmail.com>
+ * @group legacy
  */
 class ItemNormalizerTest extends TestCase
 {
+    use ProphecyTrait;
+
     /**
      * @group legacy
      */
@@ -115,10 +119,10 @@ class ItemNormalizerTest extends TestCase
 
         $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
         $propertyMetadataFactoryProphecy->create(Dummy::class, 'name', [])->willReturn(
-            new PropertyMetadata(new Type(Type::BUILTIN_TYPE_STRING), '', true)
+            (new ApiProperty())->withBuiltinTypes([new Type(Type::BUILTIN_TYPE_STRING)])->withDescription('')->withReadable(true)
         );
         $propertyMetadataFactoryProphecy->create(Dummy::class, 'relatedDummy', [])->willReturn(
-            new PropertyMetadata(new Type(Type::BUILTIN_TYPE_OBJECT, false, RelatedDummy::class), '', true, false, false)
+            (new ApiProperty())->withBuiltinTypes([new Type(Type::BUILTIN_TYPE_OBJECT, false, RelatedDummy::class)])->withDescription('')->withReadable(true)->withWritable(false)->withWritableLink(false)
         );
 
         $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
@@ -182,10 +186,10 @@ class ItemNormalizerTest extends TestCase
 
         $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
         $propertyMetadataFactoryProphecy->create(Dummy::class, 'name', [])->willReturn(
-            new PropertyMetadata(new Type(Type::BUILTIN_TYPE_STRING), '', true)
+            (new ApiProperty())->withBuiltinTypes([new Type(Type::BUILTIN_TYPE_STRING)])->withDescription('')->withReadable(true)
         );
         $propertyMetadataFactoryProphecy->create(Dummy::class, 'relatedDummy', [])->willReturn(
-            new PropertyMetadata(new Type(Type::BUILTIN_TYPE_OBJECT, false, RelatedDummy::class), '', true, false, false)
+            (new ApiProperty())->withBuiltinTypes([new Type(Type::BUILTIN_TYPE_OBJECT, false, RelatedDummy::class)])->withDescription('')->withReadable(true)->withWritable(false)->withReadableLink(false)
         );
 
         $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);
@@ -264,13 +268,13 @@ class ItemNormalizerTest extends TestCase
 
         $propertyMetadataFactoryProphecy = $this->prophesize(PropertyMetadataFactoryInterface::class);
         $propertyMetadataFactoryProphecy->create(MaxDepthDummy::class, 'id', [])->willReturn(
-            new PropertyMetadata(new Type(Type::BUILTIN_TYPE_INT), '', true)
+            (new ApiProperty())->withBuiltinTypes([new Type(Type::BUILTIN_TYPE_INT)])->withDescription('')->withReadable(true)
         );
         $propertyMetadataFactoryProphecy->create(MaxDepthDummy::class, 'name', [])->willReturn(
-            new PropertyMetadata(new Type(Type::BUILTIN_TYPE_STRING), '', true)
+            (new ApiProperty())->withBuiltinTypes([new Type(Type::BUILTIN_TYPE_STRING)])->withDescription('')->withReadable(true)
         );
         $propertyMetadataFactoryProphecy->create(MaxDepthDummy::class, 'child', [])->willReturn(
-            new PropertyMetadata(new Type(Type::BUILTIN_TYPE_OBJECT, false, MaxDepthDummy::class), '', true, false, true)
+            (new ApiProperty())->withBuiltinTypes([new Type(Type::BUILTIN_TYPE_OBJECT, false, MaxDepthDummy::class)])->withDescription('')->withReadable(true)->withWritable(false)->withReadableLink(true)
         );
 
         $iriConverterProphecy = $this->prophesize(IriConverterInterface::class);

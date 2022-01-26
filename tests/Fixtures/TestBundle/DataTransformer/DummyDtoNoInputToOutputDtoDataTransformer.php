@@ -11,17 +11,20 @@
 
 declare(strict_types=1);
 
-namespace ApiPlatform\Core\Tests\Fixtures\TestBundle\DataTransformer;
+namespace ApiPlatform\Tests\Fixtures\TestBundle\DataTransformer;
 
-use ApiPlatform\Core\DataTransformer\DataTransformerInterface;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Document\DummyDtoNoInput as DummyDtoNoInputDocument;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Dto\OutputDto;
-use ApiPlatform\Core\Tests\Fixtures\TestBundle\Entity\DummyDtoNoInput;
+use ApiPlatform\DataTransformer\DataTransformerInterface;
+use ApiPlatform\Tests\Fixtures\TestBundle\Document\DummyDtoNoInput as DummyDtoNoInputDocument;
+use ApiPlatform\Tests\Fixtures\TestBundle\Dto\Document\OutputDto as OutputDtoDocument;
+use ApiPlatform\Tests\Fixtures\TestBundle\Dto\OutputDto;
+use ApiPlatform\Tests\Fixtures\TestBundle\Entity\DummyDtoNoInput;
 
 final class DummyDtoNoInputToOutputDtoDataTransformer implements DataTransformerInterface
 {
     /**
      * {@inheritdoc}
+     *
+     * @return object
      */
     public function transform($object, string $to, array $context = [])
     {
@@ -29,7 +32,7 @@ final class DummyDtoNoInputToOutputDtoDataTransformer implements DataTransformer
             throw new \InvalidArgumentException();
         }
 
-        $output = new OutputDto();
+        $output = $object instanceof DummyDtoNoInput ? new OutputDto() : new OutputDtoDocument();
         $output->id = $object->getId();
         $output->bat = (string) $object->lorem;
         $output->baz = (float) $object->ipsum;
@@ -42,6 +45,6 @@ final class DummyDtoNoInputToOutputDtoDataTransformer implements DataTransformer
      */
     public function supportsTransformation($data, string $to, array $context = []): bool
     {
-        return ($data instanceof DummyDtoNoInput || $data instanceof DummyDtoNoInputDocument) && OutputDto::class === $to;
+        return ($data instanceof DummyDtoNoInput || $data instanceof DummyDtoNoInputDocument) && \in_array($to, [OutputDto::class, OutputDtoDocument::class], true);
     }
 }
